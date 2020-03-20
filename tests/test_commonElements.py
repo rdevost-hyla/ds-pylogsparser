@@ -158,5 +158,6 @@ class TestGenericLibrary(unittest.TestCase):
         """Testing callback dd-MMM-YYYY hh:mm:ss"""
         generic_time_callback_test(self, "dd-MMM-YYYY hh:mm:ss")
 
+
 if __name__ == "__main__":
     unittest.main()

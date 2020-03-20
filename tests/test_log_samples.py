@@ -38,12 +38,15 @@ from tzlocal import get_localzone
 
 from logsparser import lognormalizer
 
+
 normalizer_path = os.environ['NORMALIZERS_PATH']
 ln = lognormalizer.LogNormalizer(normalizer_path)
+
 
 def _get_timeoffset(timezone, localtz):
         n = datetime.now()
         return localtz.localize(n) - timezone.localize(n)
+
 
 class Test(unittest.TestCase):
 
@@ -127,8 +130,6 @@ class Test(unittest.TestCase):
     def test_syslog_with_timezone(self):
         """Test syslog logs with a timezone info"""
         try:
-            # Linux/Unix specific I guess ?
-            # localtz = pytz.timezone(file('/etc/timezone').read()[:-1])
             localtz = get_localzone()
         except:
             self.skipTest("Could not find local timezone, skipping test")    
@@ -161,7 +162,8 @@ class Test(unittest.TestCase):
                  tzinfo = 'Asia/Tokyo')
         # and finally, without the tz info ?
         now = datetime.now() + offset
-        total_seconds = (offset.microseconds + (offset.seconds + offset.days * 24 * 3600) * 10**6) / 10**6
+        total_seconds = (offset.microseconds +
+                         (offset.seconds + offset.days * 24 * 3600) * 10**6) / 10**6
         # New in python 2.7
         #total_seconds = offset.total_seconds()
         if total_seconds > 60:
@@ -206,7 +208,8 @@ class Test(unittest.TestCase):
                  tzinfo = 'America/Anchorage')
         # and finally, without the tz info ?
         now = datetime.now() + offset
-        total_seconds = (offset.microseconds + (offset.seconds + offset.days * 24 * 3600) * 10**6) / 10**6
+        total_seconds = (offset.microseconds +
+                         (offset.seconds + offset.days * 24 * 3600) * 10**6) / 10**6
         # New in python 2.7
         #total_seconds = offset.total_seconds()
         if total_seconds > 60:
@@ -232,12 +235,6 @@ class Test(unittest.TestCase):
                  'pid': '23416',
                  'message_id': '20071221073237.5244419B327@paris.office.wallix.com'})
 
-#        self.aS("<40>Dec 21 07:49:01 hosting03 postfix/anvil[32717]: statistics: max connection rate 2/60s for (smtp:64.14.54.229) at Dec 21 07:40:04",
-#                {'program': 'postfix',
-#                 'component': 'anvil',
-#                 'pid': '32717'})
-#
-
         self.aS("<40>Dec 21 07:49:01 hosting03 postfix/pipe[23417]: 1E83E1B4017: to=<gloubi@wallix.com>, relay=vmail, delay=0.13, delays=0.11/0/0/0.02, dsn=2.0.0, status=sent (delivered via vmail service)",
                 {'program': 'postfix',
                  'component': 'pipe',
@@ -254,11 +251,6 @@ class Test(unittest.TestCase):
                  'client': 'paris.office.wallix.com[82.238.42.70]',
                  'source_host': 'paris.office.wallix.com',
                  'source_ip': '82.238.42.70'})
-
-#        self.aS("<40>Dec 21 07:52:56 hosting03 postfix/smtpd[23485]: connect from mail.gloubi.com[65.45.12.22]",
-#                {'program': 'postfix',
-#                 'component': 'smtpd',
-#                 'ip': '65.45.12.22'})
 
         self.aS("<40>Dec 21 08:42:17 hosting03 postfix/pipe[26065]: CEFFB1B4020: to=<gloubi@wallix.com@autoreply.wallix.com>, orig_to=<gloubi@wallix.com>, relay=vacation, delay=4.1, delays=4/0/0/0.08, dsn=2.0.0, status=sent (delivered via vacation service)",
                 {'program': 'postfix',
@@ -318,7 +310,6 @@ class Test(unittest.TestCase):
                  'url' : "http://c.astrocenter.fr/r.aspx?M=PRFREEV3_20120226_FR_24651456&L=http*3A*2F*2Fhoroscope.20minutes.fr*2F20Minutes*2Fimages*2FMailHeader*2Faf-0--4700-MailLogo.gif&O=685037391"
                  })
 
-
     def test_netfilter(self):
         """Test netfilter logs"""
         self.aS("<40>Dec 26 09:30:07 dedibox kernel: FROM_INTERNET_DENY IN=eth0 OUT= MAC=00:40:63:e7:b2:17:00:15:fa:80:47:3f:08:00 SRC=88.252.4.37 DST=88.191.34.16 LEN=48 TOS=0x00 PREC=0x00 TTL=117 ID=56818 DF PROTO=TCP SPT=1184 DPT=445 WINDOW=65535 RES=0x00 SYN URGP=0",
@@ -361,7 +352,6 @@ class Test(unittest.TestCase):
                  'dest_mac' : '32:42:cd:02:72:30',
                  'source_mac' : '00:23:7d:c6:35:e6',
                  'prefix' : '[1655854.311830] DROPPED:' })
-
 
     def test_dhcpd(self):
         """Test DHCPd log normalization"""
@@ -431,13 +421,6 @@ class Test(unittest.TestCase):
                   'user': 'myfakeuser from 10.1.1.1 port 123 ssh2',
                   'method': 'password',
                   'source_ip': '192.168.50.65' })
-#        self.aS("Aug  1 18:30:05 knight sshd[20439]: Illegal user guest from 218.49.183.17",
-#               {'program': 'sshd',
-#                'source' : 'knight',
-#                'user' : 'guest',
-#                'source_ip': '218.49.183.17',
-#                'body' : 'Illegal user guest from 218.49.183.17',
-#                })
 
     def test_pam(self):
         """Test PAM normalization"""
@@ -499,10 +482,6 @@ class Test(unittest.TestCase):
                  'request_header_referer_contents' : "http://10.10.4.86/toc.html",
                  'useragent' : "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.3) Gecko/20090910 Ubuntu/9.04 (jaunty) Shiretoko/3.5.3",
                  'body' : '10.10.4.4 - - [04/Dec/2009:16:23:13 +0100] "GET /tulipe.core.persistent.persistent-module.html HTTP/1.1" 200 2937 "http://10.10.4.86/toc.html" "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.3) Gecko/20090910 Ubuntu/9.04 (jaunty) Shiretoko/3.5.3"'})
-
-        # Test "vhost_combined" log format "%v:%p %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\""
-        #TODO: Update apache normalizer to handle this format.
-
 
     def test_bind9(self):
         """Test Bind9 normalization"""
@@ -668,18 +647,6 @@ class Test(unittest.TestCase):
         self.aS("""sysboot: Executing 'kill -TERM 314'""",
             {'body': 'Executing \'kill -TERM 314\''})
 
-#    def test_mysql(self):
-#	"""Test mysql log normalization"""
-#	self.aS("""110923 11:04:58	   36 Query	show databases""",
-#		{'date': datetime(2011, 9, 23, 11, 4, 58),
-#		 'id': '36',
-#	 	 'type': 'Query',
-#	 	 'event': 'show databases'})
-#	self.aS("""110923 10:09:11 [Note] Plugin 'FEDERATED' is disabled.""",
-#		{'date': datetime(2011, 9, 23, 10, 9, 11),
-#	 	 'component': 'Note',
-#	 	 'event': 'Plugin \'FEDERATED\' is disabled.'})
-
     def test_IIS(self):
         """Test IIS log normalization"""
         self.aS("""172.16.255.255, anonymous, 03/20/01, 23:58:11, MSFTPSVC, SALES1, 172.16.255.255, 60, 275, 0, 0, 0, PASS, /Intro.htm, -,""",
@@ -745,10 +712,11 @@ class Test(unittest.TestCase):
 
     def test_simple_wabauth(self):
         """Test syslog logs"""
+        now = datetime.now()
         self.aS("Jan 01 00:00:22 wab2 WAB(CORE)[18190]: type='session closed' username='admin' secondary='root@debian32' client_ip='10.10.4.25' src_protocol='SFTP_SESSION' dst_protocol='SFTP_SESSION' message=''",
                 { 'account': 'root',
                   'client_ip': '10.10.4.25',
-                  'date': datetime(datetime.now().year, 1, 1, 0, 0, 22),
+                  'date': datetime(now.year, 1, 1, 0, 0, 22),
                   'dest_proto': 'SFTP_SESSION',
                   'message': '',
                   'pid': '18190',
@@ -761,7 +729,7 @@ class Test(unittest.TestCase):
 
         self.aS("Jan 01 00:00:22 wab2 WAB(CORE)[18190]: type='primary_authentication' timestamp='2011-12-20 17:19:35.621952' username='admin' client_ip='10.10.4.25' diagnostic='SUCCESS'",
                 {'client_ip': '10.10.4.25',
-                 'date': datetime(datetime.now().year, 1, 1, 0, 0, 22),
+                 'date': datetime(now.year, 1, 1, 0, 0, 22),
                  'diagnostic': 'SUCCESS',
                  'pid': '18190',
                  'program': 'WAB(CORE)',
@@ -772,7 +740,7 @@ class Test(unittest.TestCase):
         self.aS("Jan 01 00:00:22 wab2 WAB(CORE)[18190]: type='session opened' username='admin' secondary='root@debian32' client_ip='10.10.4.25' src_protocol='SFTP_SESSION' dst_protocol='SFTP_SESSION' message=''",
                 { 'account': 'root',
                   'client_ip': '10.10.4.25',
-                  'date': datetime(datetime.now().year, 1, 1, 0, 0, 22),
+                  'date': datetime(now.year, 1, 1, 0, 0, 22),
                   'dest_proto': 'SFTP_SESSION',
                   'message': '',
                   'pid': '18190',
@@ -1001,6 +969,7 @@ class Test(unittest.TestCase):
                  "logon_id" : "(0x0,0x3A092)",
                  "privileges" : "SeSecurityPrivilege   SeBackupPrivilege   SeRestorePrivilege   SeTakeOwnershipPrivilege   SeDebugPrivilege   SeSystemEnvironmentPrivilege   SeLoadDriverPrivilege   SeImpersonatePrivilege",
                  'eventlog_description': """Special privileges assigned to new logon:     User Name: Administrator     Domain: W2003EN     Logon ID: (0x0,0x3A092)     Privileges: SeSecurityPrivilege   SeBackupPrivilege   SeRestorePrivilege   SeTakeOwnershipPrivilege   SeDebugPrivilege   SeSystemEnvironmentPrivilege   SeLoadDriverPrivilege   SeImpersonatePrivilege""", })  
+
 
 if __name__ == "__main__":
     unittest.main()

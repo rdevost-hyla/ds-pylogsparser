@@ -3700,6 +3700,7 @@ tld = set(("ac",
 "*.zm",
 "*.zw",))
 
+
 def get_domain(fqdn):
     domain_elements = fqdn.split('.')
     try:

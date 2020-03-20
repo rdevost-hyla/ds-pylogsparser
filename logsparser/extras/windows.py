@@ -25,6 +25,7 @@
 
 from datetime import datetime
 
+
 def winUTC2UnixTimestamp(winTimestamp):
 	"""Converts a windows UTC timestamp (increments of 100 nanoseconds since Jan 1, 1601)
 	into a Unix EPOCH timestamp.

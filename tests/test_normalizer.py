@@ -26,6 +26,7 @@ from logsparser.normalizer import Normalizer, TagType, Tag, CallbackFunction, CS
 from lxml.etree import parse, DTD
 from io import StringIO
 
+
 class TestSample(unittest.TestCase):
     """Unit tests for logsparser.normalize. Validate sample log example"""
     normalizer_path = os.environ['NORMALIZERS_PATH']
@@ -39,7 +40,8 @@ class TestSample(unittest.TestCase):
                                     'normalizer.dtd')))
         dtd.assertValid(n)
         # Create normalizer from xml definition
-        normalizer = Normalizer(n, os.path.join(self.normalizer_path, 'common_tagTypes.xml'), os.path.join(self.normalizer_path, 'common_callBacks.xml'))
+        normalizer = Normalizer(n, os.path.join(self.normalizer_path, 'common_tagTypes.xml'),
+                                os.path.join(self.normalizer_path, 'common_callBacks.xml'))
         self.assertEqual(normalizer.name, name)
         self.assertEqual(normalizer.version, version)
         self.assertTrue(normalizer.validate())
@@ -81,7 +83,8 @@ class TestSample(unittest.TestCase):
         self.normalize_samples('symantec.xml', 'symantec', 0.99)
     
     def test_normalize_samples_013_msexchange2007MTL(self):
-        self.normalize_samples('MSExchange2007MessageTracking.xml', 'MSExchange2007MessageTracking', 0.99)
+        self.normalize_samples('MSExchange2007MessageTracking.xml',
+                               'MSExchange2007MessageTracking', 0.99)
 
     def test_normalize_samples_014_arkoonfast360(self):
         self.normalize_samples('arkoonFAST360.xml', 'arkoonFAST360', 0.99)
@@ -150,10 +153,14 @@ class TestSample(unittest.TestCase):
         self.normalize_samples('squidguard.xml', 'squidguard', 0.99)
         
     def test_normalize_samples_033_eventlogW2003(self):
-        self.normalize_samples('eventlog_security_audit_windows2003_en.xml', 'EventLog-Security-Windows2003[EN]_1', 0.99)
-        self.normalize_samples('eventlog_security_audit_windows2003_en_2.xml', 'EventLog-Security-Windows2003[EN]_2', 0.99)
-        self.normalize_samples('eventlog_security_audit_windows2003_en_3.xml', 'EventLog-Security-Windows2003[EN]_3', 0.99)
-        self.normalize_samples('eventlog_security_audit_windows2003_en_4.xml', 'EventLog-Security-Windows2003[EN]_4', 0.99)
+        self.normalize_samples('eventlog_security_audit_windows2003_en.xml',
+                               'EventLog-Security-Windows2003[EN]_1', 0.99)
+        self.normalize_samples('eventlog_security_audit_windows2003_en_2.xml',
+                               'EventLog-Security-Windows2003[EN]_2', 0.99)
+        self.normalize_samples('eventlog_security_audit_windows2003_en_3.xml',
+                               'EventLog-Security-Windows2003[EN]_3', 0.99)
+        self.normalize_samples('eventlog_security_audit_windows2003_en_4.xml',
+                               'EventLog-Security-Windows2003[EN]_4', 0.99)
 
 class TestCSVPattern(unittest.TestCase):
     """Test CSVPattern behaviour"""
@@ -201,7 +208,8 @@ log["date"] = newdate
         for t in (t1, t2, t3):
             p_tags[t.name] = t
 
-        p = CSVPattern('test', 'DATE,ID,MSG', tags = p_tags, tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
+        p = CSVPattern('test', 'DATE,ID,MSG', tags = p_tags,
+                       tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
         ret = p.normalize('Jul 18 08:55:35,83,"start listening on 127.0.0.1, pam auth started"')
         self.assertEqual(ret['date'], 'Jul 18 08:55:35')
         self.assertEqual(ret['id'], '83')
@@ -222,14 +230,16 @@ log["date"] = newdate
         for t in (t1, t2, t3):
             p_tags[t.name] = t
         
-        p = CSVPattern('test', 'DATE,ID,MSG', tags = p_tags, tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
+        p = CSVPattern('test', 'DATE,ID,MSG', tags = p_tags,
+                       tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
 
         ret = p.normalize('Jul 18 08:55:35,83,"start listening on 127.0.0.1, pam auth started"')
         self.assertEqual(ret['date'], 'Jul 18 08:55:35')
         self.assertEqual(ret['id'], '83')
         self.assertEqual(ret['msg'], 'start listening on 127.0.0.1, pam auth started')
             
-        ret = p.normalize('2011 Jul 18 08:55:35,83,"start listening on 127.0.0.1, pam auth started"')
+        ret = p.normalize(
+            '2011 Jul 18 08:55:35,83,"start listening on 127.0.0.1, pam auth started"')
         self.assertEqual(ret, None)
         
     def test_normalize_csv_pattern_003(self):
@@ -249,8 +259,9 @@ log["date"] = newdate
             p_tags[t.name] = t
         
         p = CSVPattern('test', 'DATE,ID,MSG', tags = p_tags,
-                        tagTypes = self.tag_types, callBacks = {self.cb_syslogdate.name:self.cb_syslogdate},
-                        genericTagTypes = self.generic_tagTypes)
+                       tagTypes = self.tag_types,
+                       callBacks = {self.cb_syslogdate.name:self.cb_syslogdate},
+                       genericTagTypes = self.generic_tagTypes)
 
         ret = p.normalize('Jul 18 08:55:35,83,"start listening on 127.0.0.1, pam auth started"')
         self.assertEqual(ret['date'], datetime(datetime.now().year, 7, 18, 8, 55, 35))
@@ -272,7 +283,8 @@ log["date"] = newdate
         for t in (t1, t2, t3):
             p_tags[t.name] = t
 
-        p = CSVPattern('test', ' DATE; ID ;MSG ', separator = ';', quotechar = '=', tags = p_tags, tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
+        p = CSVPattern('test', ' DATE; ID ;MSG ', separator = ';', quotechar = '=', tags = p_tags,
+                       tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
         ret = p.normalize('Jul 18 08:55:35;83;=start listening on 127.0.0.1; pam auth started=')
         self.assertEqual(ret['date'], 'Jul 18 08:55:35')
         self.assertEqual(ret['id'], '83')
@@ -293,7 +305,8 @@ log["date"] = newdate
         for t in (t1, t2, t3):
             p_tags[t.name] = t
 
-        p = CSVPattern('test', 'DATE ID MSG', separator = ' ', quotechar = '=', tags = p_tags, tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
+        p = CSVPattern('test', 'DATE ID MSG', separator = ' ', quotechar = '=', tags = p_tags,
+                       tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
         ret = p.normalize('=Jul 18 08:55:35= 83 =start listening on 127.0.0.1 pam auth started=')
         self.assertEqual(ret['date'], 'Jul 18 08:55:35')
         self.assertEqual(ret['id'], '83')
@@ -314,7 +327,8 @@ log["date"] = newdate
         for t in (t1, t2, t3):
             p_tags[t.name] = t
 
-        p = CSVPattern('test', 'DATE ID MSG', separator = ' ', quotechar = '=', tags = p_tags, tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
+        p = CSVPattern('test', 'DATE ID MSG', separator = ' ', quotechar = '=', tags = p_tags,
+                       tagTypes = self.tag_types, genericTagTypes = self.generic_tagTypes)
         # Default behaviour of csv reader is doublequote for escape a quotechar.
         ret = p.normalize('=Jul 18 08:55:35= 83 =start listening on ==127.0.0.1 pam auth started=')
         self.assertEqual(ret['date'], 'Jul 18 08:55:35')

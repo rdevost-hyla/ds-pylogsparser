@@ -26,6 +26,7 @@ import shutil
 from logsparser.lognormalizer import LogNormalizer
 from lxml.etree import parse, fromstring as XMLfromstring
 
+
 class Test(unittest.TestCase):
     """Unit tests for logsparser.lognormalizer"""
     normalizer_path = os.environ['NORMALIZERS_PATH']
@@ -59,7 +60,8 @@ class Test(unittest.TestCase):
             del active_n[to_d]
         ln.set_active_normalizers(active_n)
         ln.reload()
-        self.assertEqual(len([an[0] for an in list(ln.get_active_normalizers().items()) if an[1]]), len(ln)-2)
+        self.assertEqual(
+            len([an[0] for an in list(ln.get_active_normalizers().items()) if an[1]]), len(ln)-2)
         self.assertEqual(len(ln._cache), len(ln)-2)
 
     def test_003_activate_normalizer(self):
@@ -139,7 +141,8 @@ class Test(unittest.TestCase):
         ln = LogNormalizer([fdir, sdir])
         source = ln.get_normalizer_source('postfix-0.99')
         self.assertEqual(XMLfromstring(source).getroottree().getroot().get('name'), 'postfix')
-        self.assertTrue(ln.get_normalizer_path('postfix-0.99').__contains__(os.path.basename(sdir)))
+        self.assertTrue(
+            ln.get_normalizer_path('postfix-0.99').__contains__(os.path.basename(sdir)))
         self.assertTrue(ln.get_normalizer_path('syslog-1.0').__contains__(os.path.basename(fdir)))
         xml_src = ln.get_normalizer_source('syslog-1.0')
         os.unlink(os.path.join(fdir, 'syslog.xml'))
@@ -162,9 +165,12 @@ class Test(unittest.TestCase):
         xmln.set('version', '1.0')
         xml.write(os.path.join(fdir, 'postfix.xml'))
         ln = LogNormalizer([self.normalizer_path, fdir])
-        self.assertEqual(XMLfromstring(ln.get_normalizer_source('postfix-0.99')).getroottree().getroot().get('version'), '0.99')
-        self.assertEqual(XMLfromstring(ln.get_normalizer_source('postfix-1.0')).getroottree().getroot().get('version'), '1.0')
+        self.assertEqual(XMLfromstring(ln.get_normalizer_source(
+            'postfix-0.99')).getroottree().getroot().get('version'), '0.99')
+        self.assertEqual(XMLfromstring(ln.get_normalizer_source(
+            'postfix-1.0')).getroottree().getroot().get('version'), '1.0')
         shutil.rmtree(fdir)
+
 
 if __name__ == "__main__":
     unittest.main()

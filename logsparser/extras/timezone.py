@@ -25,6 +25,7 @@
 
 import pytz
 
+
 def to_naive_utc(date, from_tz):
     """
     @param date: a naive datetime instance

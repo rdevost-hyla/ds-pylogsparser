@@ -56,6 +56,7 @@ SAFE_SYMBOLS = ["list", "dict", "tuple", "set", "long", "float", "object",
                 "xrange", "None", "Exception", "re", "datetime", "math",
                 "urlparse", "country_code_by_address", "extras", "timedelta"]
 
+
 class Tag(object):
     """A tag as defined in a pattern."""
     def __init__(self,
@@ -80,6 +81,7 @@ class Tag(object):
     def get_description(self, language = 'en'):
         """@Return : The tag description"""
         return self.description.get(language, 'N/A')
+
 
 class TagType(object):
     """A tag type. This defines how to match a given tag."""
@@ -131,6 +133,7 @@ def get_generic_tagTypes(path = 'normalizers/common_tagTypes.xml'):
                        - generic tags will not be available." % err)
         return {}
 
+
 # import the common callbacks
 def get_generic_callBacks(path = 'normalizers/common_callBacks.xml'):
     """Imports the common callbacks.
@@ -145,17 +148,18 @@ def get_generic_callBacks(path = 'normalizers/common_callBacks.xml'):
             for child in callBack:
                 if child.tag == 'code':
                     cb_code = child.text
-		# descriptions are not used yet but implemented in xml and dtd files for later use
-                # elif child.tag == 'description':
-                #     for desc in child:
-                #         lang = desc.get('language')
-                #         cb_desc[lang] = desc.text
+            # descriptions are not used yet but implemented in xml and dtd files for later use
+            # elif child.tag == 'description':
+            #     for desc in child:
+            #         lang = desc.get('language')
+            #         cb_desc[lang] = desc.text
             generic[cb_name] = CallbackFunction(cb_code, cb_name)
         return generic
     except Exception as err:
         warnings.warn("Could not load generic callbacks definition file : %s \
                        - generic callbacks will not be available." % err)
         return {}
+
 
 class PatternExample(object):
     """Represents an log sample matching a given pattern. expected_tags is a
@@ -173,6 +177,7 @@ class PatternExample(object):
         """@return : An example description"""
         return { 'sample' : self.raw_line,
                  'normalization' : self.expected_tags }
+
 
 class Pattern(object):
     """A pattern, as defined in a normalizer configuration file."""
@@ -197,7 +202,8 @@ class Pattern(object):
         raise NotImplementedError
         
     def get_description(self, language = 'en'):
-        tags_desc = dict([ (tag.name, tag.get_description(language)) for tag in list(self.tags.values()) ])
+        tags_desc = dict([ (tag.name, tag.get_description(language))
+                           for tag in list(self.tags.values()) ])
         substitutes = dict([ (tag.substitute, tag.name) for tag in list(self.tags.values()) ])
         examples_desc = [ example.get_description(language) for example in self.examples ]
         return { 'pattern' : self.pattern, 
@@ -206,6 +212,7 @@ class Pattern(object):
                  'substitutes' : substitutes,
                  'commonTags' : self.commonTags,
                  'examples' : examples_desc }
+
 
 class CSVPattern(object):
     """A pattern that handle CSV case."""
@@ -331,7 +338,8 @@ class CSVPattern(object):
         raise NotImplementedError
         
     def get_description(self, language = 'en'):
-        tags_desc = dict([ (tag.name, tag.get_description(language)) for tag in list(self.tags.values()) ])
+        tags_desc = dict([ (tag.name, tag.get_description(language))
+                           for tag in list(self.tags.values()) ])
         substitutes = dict([ (tag.substitute, tag.name) for tag in list(self.tags.values()) ])
         examples_desc = [ example.get_description(language) for example in self.examples ]
         return { 'pattern' : self.pattern, 
@@ -466,7 +474,8 @@ class Normalizer(object):
                                                                  self.re_flags)
             elif node.tag == 'callbacks':
                 for callback in node:
-                    self.callbacks[callback.get('name')] = CallbackFunction(callback.text, callback.get('name'))
+                    self.callbacks[callback.get('name')] = CallbackFunction(callback.text,
+                                                                            callback.get('name'))
             elif node.tag == 'prerequisites':
                 for prereqTag in node:
                     self.prerequisites[prereqTag.get('name')] = prereqTag.text
@@ -479,7 +488,8 @@ class Normalizer(object):
                 for callback in node:
                     self.finalCallbacks.append(callback.text)
         # precompile regexp 
-        self.full_regexp, self.tags_translation, self.tags_to_pattern, whatever = self.get_uncompiled_regexp()
+        (self.full_regexp, self.tags_translation, self.tags_to_pattern,
+         whatever) = self.get_uncompiled_regexp()
         self.full_regexp = re.compile(self.full_regexp, self.re_flags)
         pass
     
@@ -539,17 +549,20 @@ class Normalizer(object):
                                     e_expectedTags[etag.get('name')] = etag.text
                         p_examples.append(PatternExample(e_rawline, e_expectedTags, e_description))
             if not p_csv:
-                self.patterns[p_name] = Pattern(p_name, p_pattern, p_tags, p_description, p_commonTags, p_examples)
+                self.patterns[p_name] = Pattern(
+                    p_name, p_pattern, p_tags, p_description, p_commonTags, p_examples)
             else:
-                self.patterns[p_name] = CSVPattern(p_name, p_pattern, p_csv['separator'], p_csv['quotechar'], p_tags,
-                                                   self.callbacks, self.tagTypes, self.genericTagTypes, self.genericCallBacks, p_description,
-                                                   p_commonTags, p_examples)
+                self.patterns[p_name] = CSVPattern(
+                    p_name, p_pattern, p_csv['separator'], p_csv['quotechar'], p_tags,
+                    self.callbacks, self.tagTypes, self.genericTagTypes, self.genericCallBacks, p_description,
+                    p_commonTags, p_examples)
 
     def get_description(self, language = "en"):
         return "%s v. %s" % (self.name, self.version)
     
     def get_long_description(self, language = 'en'):
-        patterns_desc = [ pattern.get_description(language) for pattern in list(self.patterns.values()) ]
+        patterns_desc = [ pattern.get_description(language)
+                          for pattern in list(self.patterns.values()) ]
         return { 'name' : self.name,
                  'version' : self.version,
                  'authors' : self.authors,
@@ -589,9 +602,9 @@ class Normalizer(object):
                 # generic ones. If nothing found either way, fall back to
                 # Anything.
                 
-                tag_regexp = self.tagTypes.get(tag.tagtype, 
-                                               self.genericTagTypes.get(tag.tagtype,
-                                                                        self.genericTagTypes['Anything'])).regexp
+                tag_regexp = self.tagTypes.get(
+                    tag.tagtype, self.genericTagTypes.get(
+                        tag.tagtype, self.genericTagTypes['Anything'])).regexp
                 named_group = '(?P<tag%i>%s)' % (increment, tag_regexp)
                 regexp = regexp.replace(tag.substitute, named_group)
                 tags_translations['tag%i' % increment] = tagname
@@ -612,7 +625,8 @@ class Normalizer(object):
         if all( [ re.match(value, log.get(prereq, ''))
                   for prereq, value in list(self.prerequisites.items()) ]) or\
            do_not_check_prereq:
-            csv_patterns = [csv_pattern for csv_pattern in list(self.patterns.values()) if isinstance(csv_pattern, CSVPattern)]
+            csv_patterns = [csv_pattern for csv_pattern in list(self.patterns.values())
+                            if isinstance(csv_pattern, CSVPattern)]
             if self.appliedTo in list(log.keys()):
                 m = getattr(self.full_regexp, self.matchtype)(log[self.appliedTo])
                 if m is not None:
@@ -632,12 +646,13 @@ class Normalizer(object):
                                 try:
                                     # if the callback doesn't exist in the normalizer file, it will
                                     # search in the commonCallBack file.
-                                    temp_wl = self.callbacks.get(cb, self.genericCallBacks.get(cb))(m[tag], temp_wl)
+                                    temp_wl = self.callbacks.get(
+                                        cb, self.genericCallBacks.get(cb))(m[tag], temp_wl)
                                 except Exception as e:
                                     pattern_name = self.patterns[self.tags_to_pattern[tag]].name
-                                    raise Exception("Error on callback %s in pattern %s : %s - skipping" %
-                                                    (self.callbacks[cb].name,
-                                                     pattern_name, e))
+                                    raise Exception(
+                                        "Error on callback %s in pattern %s : %s - skipping" %
+                                        (self.callbacks[cb].name, pattern_name, e))
                             # remove temporary tags
                             if self.tags_translation[tag].startswith('__'):
                                 del temp_wl[self.tags_translation[tag]]
@@ -652,9 +667,11 @@ class Normalizer(object):
                     # and finally, apply the final callbacks
                     for cb in self.finalCallbacks:
                         try:
-                            log.update(self.callbacks.get(cb, self.genericCallBacks.get(cb))(None, log))
+                            log.update(self.callbacks.get(
+                                cb, self.genericCallBacks.get(cb))(None, log))
                         except Exception as e:
-                            raise Exception("Cannot apply final callback %s : %r - skipping" % (cb, e))
+                            raise Exception(
+                                "Cannot apply final callback %s : %r - skipping" % (cb, e))
                 elif csv_patterns:
                     # this little trick makes the following line not type dependent
                     temp_wl = dict([ (u, log[u]) for u in list(log.keys()) ])
@@ -671,9 +688,11 @@ class Normalizer(object):
                             # and finally, apply the final callbacks
                             for cb in self.finalCallbacks:
                                 try:
-                                    log.update(self.callbacks.get(cb, self.genericCallBacks.get(cb))(None, log))
+                                    log.update(self.callbacks.get(
+                                        cb, self.genericCallBacks.get(cb))(None, log))
                                 except Exception as e:
-                                    raise Exception("Cannot apply final callback %s : %r - skipping" % (cb, e))
+                                    raise Exception(
+                                        "Cannot apply final callback %s : %r - skipping" % (cb, e))
                             break
         return log
 
@@ -698,9 +717,11 @@ class Normalizer(object):
                             w['taxonomy'] = self.taxonomy
                         for cb in self.finalCallbacks:
                             try:
-                                w.update(self.callbacks.get(cb, self.genericCallBacks.get(cb))(None, w))
+                                w.update(self.callbacks.get(
+                                    cb, self.genericCallBacks.get(cb))(None, w))
                             except Exception as e:
-                                raise Exception("Cannot apply final callback %s : %r - skipping" % (cb, e))
+                                raise Exception(
+                                    "Cannot apply final callback %s : %r - skipping" % (cb, e))
                 for expectedTag in list(example.expected_tags.keys()):
                     if isinstance(w.get(expectedTag), datetime):
                         svalue = str(w.get(expectedTag))
@@ -709,11 +730,12 @@ class Normalizer(object):
                     else:
                         svalue = w.get(expectedTag)
                     if svalue != example.expected_tags[expectedTag]:
-                        raise ValueError('Sample log "%s" does not match : expected %s -> %s, %s' % \
-                                            (example,
-                                             expectedTag,
-                                             example.expected_tags[expectedTag],
-                                             w.get(expectedTag)))
+                        raise ValueError(
+                            'Sample log "%s" does not match : expected %s -> %s, %s' %
+                            (example,
+                             expectedTag,
+                             example.expected_tags[expectedTag],
+                             w.get(expectedTag)))
         # No problem so far ? Awesome !
         return True
 
@@ -776,15 +798,17 @@ Examples
     d['description'] = escape(description['description']) or _('undocumented')
     d['taxonomy'] = ''
     if description["taxonomy"]:
-        d['taxonomy'] = ("\n\n" +\
-                         (_("This normalizer belongs to the category : *%s*") % description['taxonomy']) )
+        d['taxonomy'] = ("\n\n" +
+                         (_("This normalizer belongs to the category : *%s*") %
+                          description['taxonomy']) )
     d['patterns'] = ''
     d['examples'] = ''
     for p in description['patterns']:
         d['patterns'] +="""* %s""" % escape(p['pattern'])
         d['patterns'] += _(", where\n\n")
         for sub in p['substitutes']:
-            d['patterns'] += _("  * **%s** is %s ") % (escape(sub), (p['tags'][p['substitutes'][sub]] or _('undocumented') ))
+            d['patterns'] += _("  * **%s** is %s ") % (
+                escape(sub), (p['tags'][p['substitutes'][sub]] or _('undocumented') ))
             if not p['substitutes'][sub].startswith('__'):
                 d['patterns'] += _("(normalized as *%s*)") % p['substitutes'][sub]
             d['patterns'] += "\n"
@@ -804,4 +828,3 @@ Examples
                 d['examples'] += "  * **%s** -> %s\n" % (escape(tag), value)
             d['examples'] += '\n'
     return template % d
-

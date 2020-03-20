@@ -34,11 +34,13 @@ if __name__ == "__main__":
     print("Testing speed ...")
     t = timeit.Timer("test()", "from __main__ import test")
     speed = t.timeit(100000)/100000
-    print("%.2f microseconds per pass, giving a theoretical speed of %i logs/s." % (speed * 1000000, 1 / speed)) 
+    print("%.2f microseconds per pass, giving a theoretical speed of %i logs/s."
+          % (speed * 1000000, 1 / speed))
     
     print("Testing speed with minimal normalization ...")
     ln.set_active_normalizers({'syslog' : True})
     ln.reload()
     t = timeit.Timer("test()", "from __main__ import test")
     speed = t.timeit(100000)/100000
-    print("%.2f microseconds per pass, giving a theoretical speed of %i logs/s." % (speed * 1000000, 1 / speed))
+    print("%.2f microseconds per pass, giving a theoretical speed of %i logs/s."
+          % (speed * 1000000, 1 / speed))

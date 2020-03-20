@@ -246,7 +246,6 @@ class LogNormalizer():
         data = self.uuidify(data)
         data = self.normalize(data)
 
-    
     # some more functions for clarity
     def uuidify(self, log):
         """Adds a unique UID to the normalized log."""
@@ -265,4 +264,3 @@ class LogNormalizer():
         for norm in self._cache:
             log = norm.normalize(log, do_not_check_prereq = True)
         return log
-        

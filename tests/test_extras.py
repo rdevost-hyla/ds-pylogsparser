@@ -22,6 +22,7 @@
 import logsparser.extras as extras
 import unittest
 
+
 class TestExtras(unittest.TestCase):
     """Unit tests for the extras libraries."""
     
@@ -32,5 +33,6 @@ class TestExtras(unittest.TestCase):
         self.assertEqual(extras.get_domain("www.google.com"), "google.com")
         self.assertEqual(extras.get_domain("lucan.cs.purdue.edu"), "purdue.edu")
         
+
 if __name__ == "__main__":
     unittest.main()
