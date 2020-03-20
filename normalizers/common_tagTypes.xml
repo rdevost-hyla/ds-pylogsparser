@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- pylogparser - Logs parsers python library                  -->
+<!-- Copyright (C) 2011 Wallix Inc.                             -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- This package is free software; you can redistribute        -->
+<!-- it and/or modify it under the terms of the GNU Lesser      -->
+<!-- General Public License as published by the Free Software   -->
+<!-- Foundation; either version 2.1 of the License, or (at      -->
+<!-- your option) any later version.                            -->
+<!--                                                            -->
+<!-- This package is distributed in the hope that it will be    -->
+<!-- useful, but WITHOUT ANY WARRANTY; without even the implied -->
+<!-- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR    -->
+<!-- PURPOSE.  See the GNU Lesser General Public License for    -->
+<!-- more details.                                              -->
+<!--                                                            -->
+<!-- You should have received a copy of the GNU Lesser General  -->
+<!-- Public License along with this package; if not, write      -->
+<!-- to the Free Software Foundation, Inc., 59 Temple Place,    -->
+<!-- Suite 330, Boston, MA  02111-1307  USA                     -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!DOCTYPE tagTypes [
+<!ELEMENT tagTypes (tagType+)>
+<!ELEMENT tagType (description?,regexp,callbacks?)>
+<!ATTLIST tagType name CDATA #REQUIRED>
+<!ATTLIST tagType type (integer|float|str|datetime) "str">
+<!ELEMENT regexp (#PCDATA)>
+<!ELEMENT callbacks (callback+)>
+<!ELEMENT callback (#PCDATA)>
+<!ELEMENT description (localized_desc+)>
+<!ELEMENT localized_desc (#PCDATA)>
+<!ATTLIST localized_desc language CDATA #REQUIRED>
+]>
+
+<!-- Definition of most common tag types. -->
+
+<tagTypes>
+    <tagType name="Anything" type="str">
+        <description>
+            <localized_desc language="en">Matches everything and anything.</localized_desc>
+            <localized_desc language="fr">Chaîne de caractères de longueur arbitraire.</localized_desc>
+        </description>
+        <regexp>.*</regexp>
+    </tagType>
+    <tagType name="Integer" type="integer">
+        <description>
+            <localized_desc language="en">Matches a variable-length integer.</localized_desc>
+            <localized_desc language="fr">Entier positif.</localized_desc>
+        </description>
+        <regexp>\d+</regexp>
+    </tagType>
+    <tagType name="EpochTime" type="float">
+        <description>
+            <localized_desc language="en">Matches an EPOCH timestamp or a positive decimal number.</localized_desc>
+            <localized_desc language="fr">Horodatage au format EPOCH, ou nombre décimal positif.</localized_desc>
+        </description>
+        <regexp>\d+(?:.\d*)?</regexp>
+    </tagType>
+    <tagType name="syslogDate" type="datetime">
+        <description>
+            <localized_desc language="en">Expression matching syslog dates.</localized_desc>
+            <localized_desc language="fr">Date au format syslog.</localized_desc>
+        </description>
+        <regexp>[A-Z][a-z]{2} [ 0-9]\d \d{2}:\d{2}:\d{2}</regexp>
+    </tagType>
+    <tagType name="URL" type="str">
+        <description>
+            <localized_desc language="en">Matches an URL.</localized_desc>
+            <localized_desc language="fr">Correspond à une URL (http/https).</localized_desc>
+        </description>
+        <regexp>http[s]?://[^ "']+</regexp>
+    </tagType>
+    <tagType name="MACAddress" type="str">
+        <description>
+            <localized_desc language="en">Matches a MAC address.</localized_desc>
+            <localized_desc language="fr">Correspond à une adresse MAC.</localized_desc>
+        </description>
+        <regexp>[0-9a-fA-F]{2}:(?:[0-9a-fA-F]{2}:){4}[0-9a-fA-F]{2}</regexp>
+    </tagType>
+    <tagType name="Email" type="str">
+        <description>
+            <localized_desc language="en">Matches an E-mail address.</localized_desc>
+            <localized_desc language="fr">Correspond à une adresse e-mail.</localized_desc>
+        </description>
+        <regexp>[a-zA-Z0-9+_\-\.]+@[0-9a-zA-Z][.-0-9a-zA-Z]*.[a-zA-Z]+</regexp>
+    </tagType>
+    <tagType name="IP" type="str">
+        <description>
+            <localized_desc language="en">Matches a numeric IP.</localized_desc>
+            <localized_desc language="fr">Correspond à une adresse IP numérique.</localized_desc>
+        </description>
+        <regexp>(?&lt;![.0-9])(?:\d{1,3}.){3}\d{1,3}(?![.0-9])</regexp>
+    </tagType>
+    <tagType name="ZuluTime" type="str">
+        <description>
+            <localized_desc language="en">Matches a date written in Zulu Time</localized_desc>
+            <localized_desc language="fr">Correspond à une date exprimée au format "Zulu" ou UTC.</localized_desc>
+        </description>
+        <regexp>\d{4}-\d{2}-\d{2}(?:T\d{1,2}:\d{2}(?::\d{2}(?:[.]\d{1,5})?)?)?</regexp>
+    </tagType>
+</tagTypes>

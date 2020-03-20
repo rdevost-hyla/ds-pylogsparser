@@ -1,0 +1,105 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-01-18 12:36+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: logsparser/normalizer.py:738
+#, python-format
+msgid ""
+"%(title)s\n"
+"\n"
+"**Written by**\n"
+"\n"
+"%(authors)s\n"
+"\n"
+"Description\n"
+":::::::::::\n"
+"\n"
+"%(description)s %(taxonomy)s\n"
+"\n"
+"This normalizer can parse logs of the following structure(s):\n"
+"\n"
+"%(patterns)s\n"
+"\n"
+"Examples\n"
+"::::::::\n"
+"\n"
+"%(examples)s"
+msgstr ""
+"%(title)s\n"
+"\n"
+"**Auteur(s)**\n"
+"\n"
+"%(authors)s\n"
+"\n"
+"Description\n"
+":::::::::::\n"
+"\n"
+"%(description)s\n %(taxonomy)s\n"
+"\n"
+"Ce normaliseur reconnaît les logs structurés de la façon suivante:\n"
+"\n"
+"%(patterns)s\n"
+"\n"
+"Exemples\n"
+"::::::::\n"
+"\n"
+"%(examples)s"
+
+#: logsparser/normalizer.py:762 logsparser/normalizer.py:773
+msgid "undocumented"
+msgstr "non documenté"
+
+#: logsparser/normalizer.py:766
+#, python-format
+msgid "This normalizer belongs to the category : *%s*"
+msgstr "Ce normaliseur appartient à la catégorie : *%s*"
+
+#: logsparser/normalizer.py:771
+msgid ""
+", where\n"
+"\n"
+msgstr ", où\n"
+"\n"
+
+#: logsparser/normalizer.py:773
+#, python-format
+msgid "  * **%s** is %s "
+msgstr "  * **%s** est %s "
+
+#: logsparser/normalizer.py:775
+#, python-format
+msgid "(normalized as *%s*)"
+msgstr "(tag associé : *%s*)"
+
+#: logsparser/normalizer.py:778
+msgid ""
+"\n"
+"  Additionally, The following tags are automatically set:\n"
+"\n"
+msgstr "\n"
+"  Les tags additionnels suivants sont définis automatiquement :\n"
+"\n"
+
+#: logsparser/normalizer.py:788
+#, python-format
+msgid ""
+"* *%s*, normalized as\n"
+"\n"
+msgstr ""
+"* *%s*, dont les tags suivants sont extraits:\n"
+"\n"

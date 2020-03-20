@@ -1,0 +1,304 @@
+<?xml version="1.0"?>
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- pylogparser - Logs parsers python library                  -->
+<!-- Copyright (C) 2011 Wallix Inc.                             -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- This package is free software; you can redistribute        -->
+<!-- it and/or modify it under the terms of the GNU Lesser      -->
+<!-- General Public License as published by the Free Software   -->
+<!-- Foundation; either version 2.1 of the License, or (at      -->
+<!-- your option) any later version.                            -->
+<!--                                                            -->
+<!-- This package is distributed in the hope that it will be    -->
+<!-- useful, but WITHOUT ANY WARRANTY; without even the implied -->
+<!-- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR    -->
+<!-- PURPOSE.  See the GNU Lesser General Public License for    -->
+<!-- more details.                                              -->
+<!--                                                            -->
+<!-- You should have received a copy of the GNU Lesser General  -->
+<!-- Public License along with this package; if not, write      -->
+<!-- to the Free Software Foundation, Inc., 59 Temple Place,    -->
+<!-- Suite 330, Boston, MA  02111-1307  USA                     -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!DOCTYPE normalizer SYSTEM "normalizer.dtd">
+<normalizer name="squid"
+            version="0.99"
+            unicode="yes"
+            ignorecase="yes"
+            matchtype="match"
+            appliedTo="body"
+            taxonomy="web proxy">
+    <description>        
+        <localized_desc language="en">This normalizer parses messages issued by the Squid proxy server.
+Please note that only Squid's "native log format" is supported by this normalizer.</localized_desc>
+        <localized_desc language="fr">Ce normaliseur analyse les messages émis par les proxys Squid.
+Seul le format "natif" des logs Squid est supporté par ce normaliseur.</localized_desc></description>
+    <authors>
+        <author>mhu@wallix.com</author>
+    </authors>
+    <tagTypes>
+        <tagType name="NoSpace" type="str">
+            <description>        
+        <localized_desc language="en">single lexeme without inner spaces</localized_desc>
+        <localized_desc language="fr">unité sémantique sans espace intersticiel</localized_desc></description>
+            <regexp>[^ ]+</regexp>
+        </tagType>
+    </tagTypes>
+    <callbacks>
+        <callback name="decode_user">
+if value != "-":
+    log["user"] = value</callback>
+        <callback name="decode_dest_connect">
+ip = re.compile("(?&lt;![.0-9])(?:\d{1,3}.){3}\d{1,3}(?![.0-9])")
+if ip.match(value):
+    log["dest_ip"] = value
+else:
+    log['dest_host'] = value
+        </callback>
+    </callbacks>
+    <patterns>
+        <pattern name="squid-001">
+            <description>        
+        <localized_desc language="en">This pattern parses Squid's native log format.</localized_desc>
+        <localized_desc language="fr">Cette structure décrit le format "natif" des logs Squid.</localized_desc></description>
+            <text>EPOCH +ELAPSED IP CODE/REQUESTSTATUS SIZE METHOD URL USER PEERSTATUS/PEERHOST MIMETYPE</text>
+            <tags>
+                <tag name="__epoch" tagType="EpochTime">
+                 <description>        
+        <localized_desc language="en">the log EPOCH timestamp</localized_desc>
+        <localized_desc language="fr">l'horodatage du log au format EPOCH</localized_desc></description>
+                 <substitute>EPOCH</substitute>
+                 <callbacks>
+                  <callback>EPOCH</callback>
+                 </callbacks>
+                </tag>
+                <tag name="__user" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the user linked to the request</localized_desc>
+        <localized_desc language="fr">l'utilisateur lié à la requête</localized_desc></description>
+                 <substitute>USER</substitute>
+                 <callbacks>
+                  <callback>decode_user</callback>
+                 </callbacks>
+                </tag>
+                <tag name="elapsed" tagType="Integer">
+                 <description>        
+        <localized_desc language="en">the elapsed time for the request</localized_desc>
+        <localized_desc language="fr">le temps écoulé pour la requête</localized_desc></description>
+                 <substitute>ELAPSED</substitute>
+                </tag>
+                <tag name="source_ip" tagType="IP">
+                 <description>        
+        <localized_desc language="en">the remote host's IP</localized_desc>
+        <localized_desc language="fr">l'adresse IP de l'hôte distant</localized_desc></description>
+                 <substitute>IP</substitute>
+                </tag>
+                <tag name="event_id" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the code returned by the proxy</localized_desc>
+        <localized_desc language="fr">le code de la réponse émise par le proxy</localized_desc></description>
+                 <substitute>CODE</substitute>
+                </tag>
+                <tag name="status" tagType="Integer">
+                 <description>        
+        <localized_desc language="en">the request's status</localized_desc>
+        <localized_desc language="fr">le statut de la requête</localized_desc></description>
+                 <substitute>REQUESTSTATUS</substitute>
+                </tag>
+                <tag name="len" tagType="Integer">
+                 <description>        
+        <localized_desc language="en">the size of the request's result</localized_desc>
+        <localized_desc language="fr">la taille du résultat de la requête</localized_desc></description>
+                 <substitute>SIZE</substitute>
+                </tag>
+                <tag name="method" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the request's method</localized_desc>
+        <localized_desc language="fr">la méthode associée à la requête</localized_desc></description>
+                 <substitute>METHOD</substitute>
+                </tag>
+                <tag name="url" tagType="URL">
+                 <description>        
+        <localized_desc language="en">the requested URL</localized_desc>
+        <localized_desc language="fr">l'URL requêtée</localized_desc></description>
+                 <substitute>URL</substitute>
+                </tag>
+                <tag name="peer_status" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the peer's status</localized_desc>
+        <localized_desc language="fr">le statut du pair</localized_desc></description>
+                 <substitute>PEERSTATUS</substitute>
+                </tag>
+                <tag name="peer_host" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the peer's host</localized_desc>
+        <localized_desc language="fr">l'hôte du pair</localized_desc></description>
+                 <substitute>PEERHOST</substitute>
+                </tag>
+                <tag name="mime_type" tagType="NoSPace">
+                 <description>        
+        <localized_desc language="en">the MIME type of the result of the request</localized_desc>
+        <localized_desc language="fr">le type MIME du résultat de la requête</localized_desc></description>
+                 <substitute>MIMETYPE</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>1259844091.407    307 82.238.42.70 TCP_MISS/200 1015 GET http://www.ietf.org/css/ietf.css fbo DIRECT/64.170.98.32 text/css</text>
+                     <expectedTags>
+                          <expectedTag name="event_id">TCP_MISS</expectedTag>
+                          <expectedTag name="elapsed">307</expectedTag>
+                          <expectedTag name="source_ip">82.238.42.70</expectedTag>
+                          <expectedTag name="method">GET</expectedTag>
+                          <expectedTag name="mime_type">text/css</expectedTag>
+                          <expectedTag name="peer_host">64.170.98.32</expectedTag>
+                          <expectedTag name="peer_status">DIRECT</expectedTag>
+                          <expectedTag name="len">1015</expectedTag>
+                          <expectedTag name="status">200</expectedTag>
+                          <expectedTag name="url">http://www.ietf.org/css/ietf.css</expectedTag>
+                          <expectedTag name="user">fbo</expectedTag>
+                          <expectedTag name="taxonomy">web proxy</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="squid-002">
+            <description>        
+        <localized_desc language="en">This pattern describes Squid's CONNECT logs.</localized_desc>
+        <localized_desc language="fr">Cette structure décrit le format "natif" des logs Squid, plus spécifiquement des logs concernant l'événement HTTP "CONNECT".</localized_desc></description>
+            <text>EPOCH +ELAPSED SOURCE_IP CODE/REQUESTSTATUS SIZE METHOD DEST_CONNECT:DEST_PORT USER PEERSTATUS/PEERHOST MIMETYPE</text>
+            <tags>
+                <tag name="__epoch" tagType="EpochTime">
+                 <description>        
+        <localized_desc language="en">the log EPOCH timestamp</localized_desc>
+        <localized_desc language="fr">l'horodatage du log au format EPOCH</localized_desc></description>
+                 <substitute>EPOCH</substitute>
+                 <callbacks>
+                  <callback>EPOCH</callback>
+                 </callbacks>
+                </tag>
+                <tag name="__user" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the user linked to the request</localized_desc>
+        <localized_desc language="fr">l'utilisateur lié à la requête</localized_desc></description>
+                 <substitute>USER</substitute>
+                 <callbacks>
+                  <callback>decode_user</callback>
+                 </callbacks>
+                </tag>
+                <tag name="elapsed" tagType="Integer">
+                 <description>        
+        <localized_desc language="en">the elapsed time for the request</localized_desc>
+        <localized_desc language="fr">le temps écoulé pour la requête</localized_desc></description>
+                 <substitute>ELAPSED</substitute>
+                </tag>
+                <tag name="source_ip" tagType="IP">
+                 <description>        
+        <localized_desc language="en">the remote host's IP</localized_desc>
+        <localized_desc language="fr">l'adresse IP de l'hôte distant</localized_desc></description>
+                 <substitute>SOURCE_IP</substitute>
+                </tag>
+                <tag name="event_id" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the code returned by the proxy</localized_desc>
+        <localized_desc language="fr">le code de la réponse émise par le proxy</localized_desc></description>
+                 <substitute>CODE</substitute>
+                </tag>
+                <tag name="status" tagType="Integer">
+                 <description>        
+        <localized_desc language="en">the request's status</localized_desc>
+        <localized_desc language="fr">le statut de la requête</localized_desc></description>
+                 <substitute>REQUESTSTATUS</substitute>
+                </tag>
+                <tag name="len" tagType="Integer">
+                 <description>        
+        <localized_desc language="en">the size of the request's result</localized_desc>
+        <localized_desc language="fr">la taille du résultat de la requête</localized_desc></description>
+                 <substitute>SIZE</substitute>
+                </tag>
+                <tag name="method" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the request's method</localized_desc>
+        <localized_desc language="fr">la méthode associée à la requête</localized_desc></description>
+                 <substitute>METHOD</substitute>
+                </tag>
+                <tag name="dest_ip" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the connection destination IP</localized_desc>
+        <localized_desc language="fr">l'IP de connexion distante</localized_desc></description>
+                 <substitute>DEST_CONNECT</substitute>
+                 <callbacks>
+                  <callback>decode_dest_connect</callback>
+                 </callbacks>
+                </tag>
+                <tag name="dest_port" tagType="Integer">
+                 <description>        
+        <localized_desc language="en">the connection destination port</localized_desc>
+        <localized_desc language="fr">le port de connexion distante</localized_desc></description>
+                 <substitute>DEST_PORT</substitute>
+                </tag>
+                <tag name="peer_status" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the peer's status</localized_desc>
+        <localized_desc language="fr">le statut du pair</localized_desc></description>
+                 <substitute>PEERSTATUS</substitute>
+                </tag>
+                <tag name="peer_host" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the peer's host</localized_desc>
+        <localized_desc language="fr">l'hôte du pair</localized_desc></description>
+                 <substitute>PEERHOST</substitute>
+                </tag>
+                <tag name="mime_type" tagType="NoSpace">
+                 <description>        
+        <localized_desc language="en">the MIME type of the result of the request</localized_desc>
+        <localized_desc language="fr">le type MIME du résultat de la requête</localized_desc></description>
+                 <substitute>MIMETYPE</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>1330331041.318 115 10.10.2.115 TCP_MISS/200 39 CONNECT 68.64.4.249:443 - DIRECT/68.64.4.249 -</text>
+                     <expectedTags>
+                          <expectedTag name="event_id">TCP_MISS</expectedTag>
+                          <expectedTag name="elapsed">115</expectedTag>
+                          <expectedTag name="source_ip">10.10.2.115</expectedTag>
+                          <expectedTag name="method">CONNECT</expectedTag>
+                          <expectedTag name="mime_type">-</expectedTag>
+                          <expectedTag name="peer_host">68.64.4.249</expectedTag>
+                          <expectedTag name="peer_status">DIRECT</expectedTag>
+                          <expectedTag name="len">39</expectedTag>
+                          <expectedTag name="status">200</expectedTag>
+                          <expectedTag name="dest_ip">68.64.4.249</expectedTag>
+                          <expectedTag name="dest_port">443</expectedTag>
+                          <expectedTag name="taxonomy">web proxy</expectedTag>
+                     </expectedTags>
+                </example>
+                <example>
+                     <text>1333350837.580 6515 10.10.5.10 TCP_MISS/200 4537 CONNECT versioncheck.addons.mozilla.org:443 - DIRECT/63.245.217.168 -</text>
+                     <expectedTags>
+                          <expectedTag name="event_id">TCP_MISS</expectedTag>
+                          <expectedTag name="elapsed">6515</expectedTag>
+                          <expectedTag name="source_ip">10.10.5.10</expectedTag>
+                          <expectedTag name="method">CONNECT</expectedTag>
+                          <expectedTag name="mime_type">-</expectedTag>
+                          <expectedTag name="peer_host">63.245.217.168</expectedTag>
+                          <expectedTag name="peer_status">DIRECT</expectedTag>
+                          <expectedTag name="len">4537</expectedTag>
+                          <expectedTag name="status">200</expectedTag>
+                          <expectedTag name="dest_host">versioncheck.addons.mozilla.org</expectedTag>
+                          <expectedTag name="dest_port">443</expectedTag>
+                          <expectedTag name="taxonomy">web proxy</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+    </patterns>
+    <commonTags>
+        <commonTag name="program">squid</commonTag>
+    </commonTags>
+</normalizer>

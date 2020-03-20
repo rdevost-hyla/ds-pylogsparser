@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- pylogparser - Logs parsers python library                  -->
+<!-- Copyright (C) 2011 Wallix Inc.                             -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- This package is free software; you can redistribute        -->
+<!-- it and/or modify it under the terms of the GNU Lesser      -->
+<!-- General Public License as published by the Free Software   -->
+<!-- Foundation; either version 2.1 of the License, or (at      -->
+<!-- your option) any later version.                            -->
+<!--                                                            -->
+<!-- This package is distributed in the hope that it will be    -->
+<!-- useful, but WITHOUT ANY WARRANTY; without even the implied -->
+<!-- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR    -->
+<!-- PURPOSE.  See the GNU Lesser General Public License for    -->
+<!-- more details.                                              -->
+<!--                                                            -->
+<!-- You should have received a copy of the GNU Lesser General  -->
+<!-- Public License along with this package; if not, write      -->
+<!-- to the Free Software Foundation, Inc., 59 Temple Place,    -->
+<!-- Suite 330, Boston, MA  02111-1307  USA                     -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!DOCTYPE normalizer SYSTEM "normalizer.dtd">
+<normalizer name="netfilter"
+            version="0.99"
+            unicode="yes"
+            ignorecase="yes"
+            matchtype="match"
+            appliedTo="body"
+            taxonomy="firewall">
+    <description>
+        <localized_desc language="en">Netfilter log normalization.
+Netfilter logs consist of a list of keys and values. Normalized keys are "in", "out", "mac", "src", "spt", "dst", "dpt", "len", "proto".
+        </localized_desc>
+        <localized_desc language="fr">Ce normaliseur analyse les logs émis par le composant kernel Netfilter.
+Les messages Netfilter sont composés d'une liste de clés et de valeurs associèes.
+Les clés extraites par ce normaliseur sont "in", "out", "mac", "src", "spt", "dst", "dpt", "len", "proto".
+        </localized_desc>
+    </description>
+    <authors>
+        <author>fbo@wallix.com</author>
+    </authors>
+    <tagTypes>
+        <tagType name="NetfilterFields" type="str">
+            <description>
+        <localized_desc language="en">Some typical fields used for log identification.</localized_desc>
+        <localized_desc language="fr">Quelques champs propres aux logs NETFILTER.</localized_desc></description>
+            <regexp>IN=.* OUT=.* SRC=.* DST=.*</regexp>
+        </tagType>
+    </tagTypes>
+    <callbacks>
+        <callback name="decode_netfilter_key_value">
+ACCEPTED = [ "in", "out", "mac", "src",
+             "spt", "dst", "dpt", "len", "proto" ]
+# Retreive elements separeted by space
+elms = value.split()
+candidates = [elm for elm in elms if not elm.find('=') == -1 and not elm.endswith('=')]
+kv_dict = dict([x.split('=') for x in candidates])
+for k,v in kv_dict.items():
+    kl = k.lower()
+    if kl in ACCEPTED:
+        log[kl] = v
+
+TRANSLATE = {'in': 'inbound_int',
+             'out': 'outbound_int',
+             'src': 'source_ip',
+             'dst': 'dest_ip',
+             'proto': 'protocol',
+             'spt': 'source_port',
+             'dpt': 'dest_port'}
+
+for k, v in TRANSLATE.items():
+    if k in log.keys():
+        val = log[k]
+        del log[k]
+        log[v] = val
+
+if 'mac' in log.keys():
+    log['dest_mac'] = log['mac'][:17]
+    log['source_mac'] = log['mac'][18:-6]
+    del log['mac']
+
+log['program'] = 'netfilter'
+        </callback>
+    </callbacks>
+    <prerequisites>
+        <prereqTag name="program">kernel</prereqTag>
+    </prerequisites> 
+    <patterns>
+        <pattern name="netfilter-001">
+            <description>
+                <localized_desc language="en"></localized_desc>
+                <localized_desc language="fr"></localized_desc>
+            </description>
+            <text>(?:USERPREFIX )?KEYVALUES</text>
+            <tags>
+                <tag name="prefix" tagType="Anything">
+                    <description>
+                        <localized_desc language="en">a user defined prefix</localized_desc>
+                        <localized_desc language="fr">un préfixe défini par l'utilisateur</localized_desc>
+                    </description>
+                    <substitute>USERPREFIX</substitute>
+                </tag>
+                <tag name="__keyvalues" tagType="NetfilterFields">
+                    <description>
+                        <localized_desc language="en">Generic Netfilter message with many key-values couples</localized_desc>
+                        <localized_desc language="fr">Message Netfilter générique comportant plusieurs couples clé-valeur</localized_desc>
+                    </description>
+                    <substitute>KEYVALUES</substitute>
+                    <callbacks>
+                        <callback>decode_netfilter_key_value</callback>
+                    </callbacks>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>*UDP_IN Blocked* IN=eth0 OUT= MAC=ff:ff:ff:ff:ff:ff:00:15:5d:20:c2:06:08:00 SRC=69.10.39.115 DST=255.255.255.255 LEN=166 TOS=0x00 PREC=0x00 TTL=128 ID=22557 PROTO=UDP SPT=55439 DPT=6112</text>
+                     <expectedTags>
+                          <expectedTag name="program">netfilter</expectedTag>
+                          <expectedTag name="prefix">*UDP_IN Blocked*</expectedTag>
+                          <expectedTag name="inbound_int">eth0</expectedTag>
+                          <expectedTag name="dest_mac">ff:ff:ff:ff:ff:ff</expectedTag>
+                          <expectedTag name="source_mac">00:15:5d:20:c2:06</expectedTag>
+                          <expectedTag name="source_ip">69.10.39.115</expectedTag>
+                          <expectedTag name="dest_ip">255.255.255.255</expectedTag>
+                          <expectedTag name="len">166</expectedTag>
+                          <expectedTag name="protocol">UDP</expectedTag>
+                          <expectedTag name="source_port">55439</expectedTag>
+                          <expectedTag name="dest_port">6112</expectedTag>
+                          <expectedTag name="taxonomy">firewall</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+    </patterns>
+</normalizer>
+

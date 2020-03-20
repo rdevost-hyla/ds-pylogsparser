@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- pylogparser - Logs parsers python library                  -->
+<!-- Copyright (C) 2011 Wallix Inc.                             -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- This package is free software; you can redistribute        -->
+<!-- it and/or modify it under the terms of the GNU Lesser      -->
+<!-- General Public License as published by the Free Software   -->
+<!-- Foundation; either version 2.1 of the License, or (at      -->
+<!-- your option) any later version.                            -->
+<!--                                                            -->
+<!-- This package is distributed in the hope that it will be    -->
+<!-- useful, but WITHOUT ANY WARRANTY; without even the implied -->
+<!-- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR    -->
+<!-- PURPOSE.  See the GNU Lesser General Public License for    -->
+<!-- more details.                                              -->
+<!--                                                            -->
+<!-- You should have received a copy of the GNU Lesser General  -->
+<!-- Public License along with this package; if not, write      -->
+<!-- to the Free Software Foundation, Inc., 59 Temple Place,    -->
+<!-- Suite 330, Boston, MA  02111-1307  USA                     -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!DOCTYPE normalizer SYSTEM "normalizer.dtd">
+<normalizer name="postfix"
+            version="0.99"
+            unicode="yes"
+            ignorecase="yes"
+            matchtype="match"
+            appliedTo="body"
+            taxonomy="mail">
+    <description>
+        <localized_desc language="en">Postfix log normalization.
+Postfix logs consist of a message UID and a list of keys and values.
+Normalized keys are "client", "to", "from", "orig_to", "relay", "size", "message-id" and "status".</localized_desc>
+        <localized_desc language="fr">Ce normaliseur analyse les logs émis par le service Postfix.
+Les messages Postfix sont composés d'un UID de message et d'une liste variable de clés et de valeurs associées.
+Les clés extraites par ce normaliseur sont "client", "to", "from", "orig_to", "relay", "size", "message-id" et "status".</localized_desc>
+    </description>
+    <authors>
+        <author>mhu@wallix.com</author>
+    </authors>
+    <tagTypes>
+        <tagType name="postfixUID" type="str">
+            <description>
+        <localized_desc language="en">the hexadecimal message UID</localized_desc>
+        <localized_desc language="fr">l'UID associé au message, exprimé sous forme d'un nombre hexadécimal</localized_desc></description>
+            <regexp>[0-9A-F]{11}</regexp>
+        </tagType>
+    </tagTypes>
+    <callbacks>
+        <callback name="decode_postfix_key_value">
+# find the component and trim the program
+if log.get("program", "").startswith("postfix"):
+    log["component"] = log['program'][8:]
+    log["program"] = "postfix"
+ACCEPTED = [ "client",
+             "to",
+             "from",
+             "orig_to",
+             "relay",
+             "size",
+             "message-id",
+             "status" ]
+# re to trying to match client and relay address
+r=re.compile('(?P&lt;host&gt;[A-Za-z0-9\-\.]+)(?P&lt;ip&gt;\[.*\])?(?P&lt;port&gt;\:\d+)?$')
+
+couples = value.split(', ')
+for couple in couples:
+    tagname, tagvalue = couple.split('=', 1)
+    if tagname in ACCEPTED:
+        tagvalue = tagvalue.strip('&lt;&gt;')
+        log[tagname] = tagvalue
+        if tagname == 'status':
+            log[tagname] = log[tagname].split()[0]
+
+TRANSLATE = {"to": "message_recipient",
+             "from": "message_sender",
+             "size": "len",
+             "message-id": "message_id"}
+for k,v in TRANSLATE.items():
+    if k in log.keys():
+        val = log[k]
+        del log[k]
+        log[v] = val
+
+if 'client' in log.keys():
+    host, ip, port = r.match(log['client']).groups()
+    if host:
+        log['source_host'] = host
+    if ip:
+        log['source_ip'] = ip.strip("[]")
+    if port:
+        log['source_port'] = port.strip(':')
+
+if 'relay' in log.keys():
+    host, ip, port = r.match(log['relay']).groups()
+    if host:
+        log['dest_host'] = host
+    if ip:
+        log['dest_ip'] = ip.strip("[]")
+    if port:
+        log['dest_port'] = port.strip(':')
+
+    </callback>
+    </callbacks>
+    <prerequisites>
+        <prereqTag name="program">postfix.+</prereqTag>
+    </prerequisites>
+    <patterns>
+        <pattern name="postfix-001">
+            <description>
+        <localized_desc language="en">Generic postfix message with an UID and many key-values couples.</localized_desc>
+        <localized_desc language="fr">Message Postfix générique comportant un UID et plusieurs couples clé-valeur.</localized_desc></description>
+            <text>UID: KEYVALUES</text>
+            <tags>
+                <tag name="queue_id" tagType="postfixUID">
+                 <description>
+        <localized_desc language="en">the Postfix message UID</localized_desc>
+        <localized_desc language="fr">l'UID du message Postfix</localized_desc></description>
+                 <substitute>UID</substitute>
+                </tag>
+                <tag name="__keyvalues" tagType="Anything">
+                 <description>
+        <localized_desc language="en">the Postfix key-value couples</localized_desc>
+        <localized_desc language="fr">les couples clé-valeur du log Postfix</localized_desc></description>
+                 <substitute>KEYVALUES</substitute>
+                 <callbacks>
+                  <callback>decode_postfix_key_value</callback>
+                 </callbacks>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>74275790B06: to=&lt;root@ubuntu&gt;, orig_to=&lt;root&gt;, relay=none, delay=0.91, delays=0.31/0.07/0.53/0, dsn=5.4.4, status=bounced (Host or domain name not found. Name service error for name=ubuntu type=A: Host not found)</text>
+                     <expectedTags>
+                          <expectedTag name="queue_id">74275790B06</expectedTag>
+                          <expectedTag name="message_recipient">root@ubuntu</expectedTag>
+                          <expectedTag name="orig_to">root</expectedTag>
+                          <expectedTag name="relay">none</expectedTag>
+                          <expectedTag name="status">bounced</expectedTag>
+                          <expectedTag name="taxonomy">mail</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+    </patterns>
+</normalizer>
+

@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- pylogparser - Logs parsers python library                  -->
+<!-- Copyright (C) 2011 Wallix Inc.                             -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- This package is free software; you can redistribute        -->
+<!-- it and/or modify it under the terms of the GNU Lesser      -->
+<!-- General Public License as published by the Free Software   -->
+<!-- Foundation; either version 2.1 of the License, or (at      -->
+<!-- your option) any later version.                            -->
+<!--                                                            -->
+<!-- This package is distributed in the hope that it will be    -->
+<!-- useful, but WITHOUT ANY WARRANTY; without even the implied -->
+<!-- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR    -->
+<!-- PURPOSE.  See the GNU Lesser General Public License for    -->
+<!-- more details.                                              -->
+<!--                                                            -->
+<!-- You should have received a copy of the GNU Lesser General  -->
+<!-- Public License along with this package; if not, write      -->
+<!-- to the Free Software Foundation, Inc., 59 Temple Place,    -->
+<!-- Suite 330, Boston, MA  02111-1307  USA                     -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!-- http://updates.checkpoint.com/fileserver/ID/7460/FILE/LEA_fields_draft.pdf   -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+ 
+<!DOCTYPE normalizer SYSTEM "normalizer.dtd">
+<normalizer name="LEA"
+            version="0.99"
+            unicode="yes"
+            ignorecase="yes"
+            matchtype="match"
+            appliedTo="body"
+            taxonomy="firewall">
+    <description>
+        <localized_desc language="en">This normalizer parses Check Point's LEA (Log Export API) formatted logs. The LEA format is used by Check Point products to export logs to a LogBox.
+The formatting with | as a fields separator is due to the use of FW1-LogGrabber for log fetching.
+
+Due to the dynamic nature of this logging format, please refer to your product's documentation to find out more about tagging.</localized_desc>
+        <localized_desc language="fr">Ce normaliseur analyse les logs émis en utilisant l'API Check Point d'export de logs (LEA). Cette API peut être utilisée pour la réception de logs en provenance d'équipements Check Point.
+Le formatage des champs séparés par le caractère | est dû à la récupération des logs via l'utilitaire FW1-LogGrabber.
+
+En raison de la nature dynamique de ce format de log, les tags extraits peuvent varier en fonction des événements consignés. Veuillez vous référer à la documentation de votre équipement exposant LEA pour de plus amples informations.</localized_desc></description>
+    <authors>
+        <author>mhu@wallix.com</author>
+    </authors>
+    <tagTypes>
+        <tagType name="LEAFields" type="str">
+            <description>
+        <localized_desc language="en">LEA fields as "key=value", separated by |</localized_desc>
+        <localized_desc language="fr">Champs descriptifs au format "clé=valeur", séparés par le caractère |</localized_desc></description>
+            <regexp>[^ =]+=[^=|]+[|](?:[^ =]+=[^|]+|)*[^ =]+=[^|]+</regexp>
+        </tagType>
+    </tagTypes>
+    <callbacks>
+        <callback name="decode_LEA">
+# These are the only tags we extract
+KNOWN = [ ("loc", "id"),
+          "product",
+          "i/f_dir",
+          "i/f_name",
+          "orig",
+          "type",
+          "action",
+          ("proto", "protocol"),
+          "rule",
+          "src",
+          "dst",
+          ("s_port", "source_port"),
+          ("service", "dest_port"),
+          ("uuid", "lea_uuid") ]
+
+def src_dst_extract(data):
+    ip_re = re.compile("(?&lt;![.0-9])((?:[0-9]{1,3}[.]){3}[0-9]{1,3})(?![.0-9])")
+    if ip_re.match(data['src']):
+        data['source_ip'] = data['src']
+    else:
+        data['source_host'] = data['src']
+    if ip_re.match(data['dst']):
+        data['dest_ip'] = data['dst']
+    else:
+        data['dest_host'] = data['dst']
+    if ip_re.match(data['orig']):
+        data['local_ip'] = data['orig']
+    else:
+        data['local_host'] = data['orig']
+    del data['src']
+    del data['dst']
+    del data['orig']
+
+def int_extract(data):
+    if 'i/f_dir' in data.keys():
+        if data['i/f_dir'] == 'inbound':
+            data['inbound_int'] = data['i/f_name']
+        if data['i/f_dir'] == 'outbound':
+            data['outbound_int'] = data['i/f_name']
+    del data['i/f_dir']
+    del data['i/f_name']
+
+dic = {}
+body = value.split('|')
+for l in body:
+    key, val = l.split("=", 1)
+    dic[key] = val
+# keep only known tags
+for t in KNOWN:
+    if isinstance(t, str):
+       t = (t,t)
+    old, new = t
+    if old in dic.keys():
+        log[new] = dic[old]
+# improve body readability
+log['body'] = log['body'].replace("|", " ") 
+# Try to retrieve the date
+try:
+    log['date'] = datetime.utcfromtimestamp(int(dic['time']))
+except:
+    try:
+        log['date'] = datetime.strptime(dic['time'], "%Y-%m-%d %H:%M:%S")
+    except:
+        # cannot parse it, keep it safe
+        log['time'] = dic['time']
+
+src_dst_extract(log)
+int_extract(log)
+
+</callback>
+    </callbacks>
+    <prerequisites>
+        <prereqTag name="program">lea</prereqTag>
+    </prerequisites>
+    <patterns>
+        <pattern name="LEA-001">
+            <description>
+        <localized_desc language="en">A list of key-value couples, separated by a | character.</localized_desc>
+        <localized_desc language="fr">L'événement est décrit à l'aide d'une série de couples clé-valeur, séparés par le caractère |.</localized_desc></description>
+            <text>LEAFIELDS</text>
+            <tags>
+                <tag name="__lea" tagType="LEAFields">
+                 <description>
+        <localized_desc language="en">a list of key-value couples, separated by a | character, needing some post-processing</localized_desc>
+        <localized_desc language="fr">la liste des couples clé-valeur, nécessitant un traitement ultérieur</localized_desc></description>
+                 <substitute>LEAFIELDS</substitute>
+                 <callbacks>
+                  <callback>decode_LEA</callback>
+                 </callbacks>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>loc=3707|time=1199716450|action=accept|orig=fw1|i/f_dir=inbound|i/f_name=PCnet1|has_accounting=0|uuid=&lt;47822e42,00000001,7b040a0a,000007b6&gt;|product=VPN-1 &amp; FireWall-1|__policy_id_tag=product=VPN-1 &amp; FireWall-1[db_tag={9F95C344-FE3F-4E3E-ACD8-60B5194BAAB4};mgmt=fw1;date=1199701916;policy_name=Standard]|src=naruto|s_port=56840|dst=fw1|service=https|proto=tcp|rule=1</text>
+                     <expectedTags>
+                          <expectedTag name="id">3707</expectedTag>
+                          <expectedTag name="action">accept</expectedTag>
+                          <expectedTag name="product">VPN-1 &amp; FireWall-1</expectedTag>
+                          <expectedTag name="inbound_int">PCnet1</expectedTag>
+                          <expectedTag name="local_host">fw1</expectedTag>
+                          <expectedTag name="protocol">tcp</expectedTag>
+                          <expectedTag name="rule">1</expectedTag>
+                          <expectedTag name="source_host">naruto</expectedTag>
+                          <expectedTag name="dest_host">fw1</expectedTag>
+                          <expectedTag name="source_port">56840</expectedTag>
+                          <expectedTag name="dest_port">https</expectedTag>
+                          <expectedTag name="taxonomy">firewall</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+    </patterns>
+</normalizer>
+

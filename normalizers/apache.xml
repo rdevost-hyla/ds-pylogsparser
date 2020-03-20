@@ -1,0 +1,271 @@
+<?xml version="1.0"?>
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- pylogparser - Logs parsers python library                  -->
+<!-- Copyright (C) 2011 Wallix Inc.                             -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- This package is free software; you can redistribute        -->
+<!-- it and/or modify it under the terms of the GNU Lesser      -->
+<!-- General Public License as published by the Free Software   -->
+<!-- Foundation; either version 2.1 of the License, or (at      -->
+<!-- your option) any later version.                            -->
+<!--                                                            -->
+<!-- This package is distributed in the hope that it will be    -->
+<!-- useful, but WITHOUT ANY WARRANTY; without even the implied -->
+<!-- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR    -->
+<!-- PURPOSE.  See the GNU Lesser General Public License for    -->
+<!-- more details.                                              -->
+<!--                                                            -->
+<!-- You should have received a copy of the GNU Lesser General  -->
+<!-- Public License along with this package; if not, write      -->
+<!-- to the Free Software Foundation, Inc., 59 Temple Place,    -->
+<!-- Suite 330, Boston, MA  02111-1307  USA                     -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!DOCTYPE normalizer SYSTEM "normalizer.dtd">
+<normalizer name="apache"
+            version="0.99"
+            unicode="yes"
+            ignorecase="yes"
+            matchtype="match"
+            appliedTo="body"
+            taxonomy="web server">
+    <description>
+        <localized_desc language="en">Apache normalizer. This parser supports native log formats defined in Apache's documentation, see http://httpd.apache.org/docs/current/logs.html .</localized_desc>
+        <localized_desc language="fr">Ce normaliseur supporte les logs émis par les serveurs web Apache. Seuls les formats décrits dans la documentation Apache sont supportés en standard : cf http://httpd.apache.org/docs/current/logs.html .</localized_desc></description>
+    <authors>
+        <author>mhu@wallix.com</author>
+    </authors>
+    <tagTypes>
+        <tagType name="CommonTimeFormat" type="datetime">
+            <description>
+        <localized_desc language="en">Matches apache's common time format.</localized_desc>
+        <localized_desc language="fr">Une expression correspondant au format d'horodatage par défaut d'Apache.</localized_desc></description>
+            <regexp>\[\d{1,2}/.{3}/\d{4}:\d{1,2}:\d{1,2}:\d{1,2}(?: [+-]\d{4})?\]</regexp>
+        </tagType>
+        <tagType name="ApacheIP" type="str">
+            <description>
+        <localized_desc language="en">IP address or None.</localized_desc>
+        <localized_desc language="fr">Une adresse IP, ou un champ vide.</localized_desc></description>
+            <regexp>(?:(?:\d{1,3}\.){3}\d{1,3})|-</regexp>
+        </tagType>
+        <tagType name="ApacheNumVal" type="str">
+            <description>
+        <localized_desc language="en">Integer or float, or None.</localized_desc>
+        <localized_desc language="fr">Une valeur numérique entière ou décimale, ou un champ vide.</localized_desc></description>
+            <regexp>[\d.,]+|-</regexp>
+        </tagType>
+        <tagType name="ApacheWord" type="str">
+            <description>
+        <localized_desc language="en">DN, user name ...</localized_desc>
+        <localized_desc language="fr">Un "mot", ou un champ vide.</localized_desc></description>
+            <regexp>[\w.-]+|-</regexp>
+        </tagType>
+    </tagTypes>
+    <callbacks>
+        <callback name="decode_url_path">
+try:
+    path = value.split(' ')[1].split('?')[0]
+    log['url_path'] = path
+    log['method'] = value.split(' ')[0]
+except:
+    pass</callback>
+        <callback name="sanitize_len">
+try:
+    i = float(value)
+    log['len'] = value
+except:
+    log['len'] = 0</callback>
+    </callbacks>
+    <patterns>
+        <pattern name="apache-001">
+            <description>
+        <localized_desc language="en">Common Log Format.</localized_desc>
+        <localized_desc language="fr">Structure des logs selon le schéma "Common Log Format".</localized_desc></description>
+            <text>%h %l %u %t "%r" %&gt;s %b$</text>
+            <tags>
+                <tag name="source_ip" tagType="ApacheWord">
+                 <description>
+        <localized_desc language="en">the remote host initiating the request</localized_desc>
+        <localized_desc language="fr">l'hôte distant lançant la requête</localized_desc></description>
+                 <substitute>%h</substitute>
+                </tag>
+                <tag name="source_logname" tagType="ApacheWord">
+                 <description>
+        <localized_desc language="en">the remote logname used to initiate the request</localized_desc>
+        <localized_desc language="fr">l'identifiant distant lançant la requête</localized_desc></description>
+                 <substitute>%l</substitute>
+                </tag>
+                <tag name="user" tagType="ApacheWord">
+                 <description>
+        <localized_desc language="en">the remote user initiating the request</localized_desc>
+        <localized_desc language="fr">l'utilisateur distant lançant la requête</localized_desc></description>
+                 <substitute>%u</substitute>
+                </tag>
+                <tag name="__date" tagType="CommonTimeFormat">
+                 <description>
+        <localized_desc language="en">the date on which the request was issued - please note that the timezone information is not carried over</localized_desc>
+        <localized_desc language="fr">la date à laquelle la requête a été émise. Veuillez noter que l'information de fuseau horaire n'est pas conservée</localized_desc></description>
+                 <substitute>%t</substitute>
+                 <callbacks>
+                  <callback>dd/MMM/YYYY:hh:mm:ss</callback>
+                 </callbacks>
+                </tag>
+                <tag name="request" tagType="Anything">
+                 <description>
+        <localized_desc language="en">the first line of the request</localized_desc>
+        <localized_desc language="fr">la première ligne de la requête</localized_desc></description>
+                 <substitute>%r</substitute>
+                 <callbacks>
+                    <callback>decode_url_path</callback>
+                 </callbacks>
+                </tag>
+                <tag name="status" tagType="ApacheNumVal">
+                 <description>
+        <localized_desc language="en">the final status code for the request</localized_desc>
+        <localized_desc language="fr">le code de statut final pour la requête</localized_desc></description>
+                 <substitute>%&gt;s</substitute>
+                </tag>
+                <tag name="__len" tagType="ApacheNumVal">
+                 <description>
+        <localized_desc language="en">the size of the response in bytes, including HTTP headers</localized_desc>
+        <localized_desc language="fr">la taille de la réponse émise en bytes, en-têtes HTTP inclus</localized_desc></description>
+                 <substitute>%b</substitute>
+                 <callbacks>
+                    <callback>sanitize_len</callback>
+                 </callbacks>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>127.0.0.1 - - [20/Jul/2009:00:29:39 +0300] "GET /index/helper/test HTTP/1.1" 200 889</text>
+                     <expectedTags>
+                          <expectedTag name="source_ip">127.0.0.1</expectedTag>
+                          <expectedTag name="source_logname">-</expectedTag>
+                          <expectedTag name="user">-</expectedTag>
+                          <expectedTag name="request">GET /index/helper/test HTTP/1.1</expectedTag>
+                          <expectedTag name="status">200</expectedTag>
+                          <expectedTag name="len">889</expectedTag>
+                          <expectedTag name="program">apache</expectedTag>
+                          <expectedTag name="url_path">/index/helper/test</expectedTag>
+                          <expectedTag name="method">GET</expectedTag>
+                          <expectedTag name="taxonomy">web server</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="apache-002">
+            <description>
+        <localized_desc language="en">"Combined" Log Format.</localized_desc>
+        <localized_desc language="fr">Structure des logs selon le schéma "Combined".</localized_desc></description>
+            <text>%h %l %u %t "%r" %&gt;s %b "%{Referer}i" "%{User-agent}i"$</text>
+            <tags>
+                <tag name="source_ip" tagType="ApacheWord">
+                 <description>
+        <localized_desc language="en">the remote host initiating the request</localized_desc>
+        <localized_desc language="fr">l'hôte distant lançant la requête</localized_desc></description>
+                 <substitute>%h</substitute>
+                </tag>
+                <tag name="source_logname" tagType="ApacheWord">
+                 <description>
+        <localized_desc language="en">the remote logname used to initiate the request</localized_desc>
+        <localized_desc language="fr">l'identifiant distant lançant la requête</localized_desc></description>
+                 <substitute>%l</substitute>
+                </tag>
+                <tag name="user" tagType="ApacheWord">
+                 <description>
+        <localized_desc language="en">the remote user initiating the request</localized_desc>
+        <localized_desc language="fr">l'utilisateur distant lançant de la requête</localized_desc></description>
+                 <substitute>%u</substitute>
+                </tag>
+                <tag name="__date" tagType="CommonTimeFormat">
+                 <description>
+        <localized_desc language="en">the date on which the request was issued - please note that the timezone information is not carried over</localized_desc>
+        <localized_desc language="fr">la date à laquelle la requête a été émise. Veuillez noter que l'information de fuseau horaire n'est pas conservée</localized_desc></description>
+                 <substitute>%t</substitute>
+                 <callbacks>
+                  <callback>dd/MMM/YYYY:hh:mm:ss</callback>
+                 </callbacks>
+                </tag>
+                <tag name="request" tagType="Anything">
+                 <description>
+        <localized_desc language="en">the first line of the request</localized_desc>
+        <localized_desc language="fr">la première ligne de la requête</localized_desc></description>
+                 <substitute>%r</substitute>
+                 <callbacks>
+                    <callback>decode_url_path</callback>
+                 </callbacks>
+                </tag>
+                <tag name="status" tagType="ApacheNumVal">
+                 <description>
+        <localized_desc language="en">the final status code for the request</localized_desc>
+        <localized_desc language="fr">le code de statut final pour la requête</localized_desc></description>
+                 <substitute>%&gt;s</substitute>
+                </tag>
+                <tag name="__len" tagType="ApacheNumVal">
+                 <description>
+        <localized_desc language="en">the size of the response in bytes, including HTTP headers</localized_desc>
+        <localized_desc language="fr">la taille de la réponse émise en bytes, en-têtes HTTP inclus</localized_desc></description>
+                 <substitute>%b</substitute>
+                 <callbacks>
+                    <callback>sanitize_len</callback>
+                 </callbacks>
+                </tag>
+                <tag name="request_header_referer_contents" tagType="Anything">
+                 <description>
+        <localized_desc language="en">the contents of the "Referer" request header</localized_desc>
+        <localized_desc language="fr">le contenu de l'en-tête "Referer" de la requête</localized_desc></description>
+                 <substitute>%{Referer}i</substitute>
+                </tag>
+                <tag name="useragent" tagType="Anything">
+                 <description>
+        <localized_desc language="en">the contents of the "User-agent" request header</localized_desc>
+        <localized_desc language="fr">le contenu de l'en-tête "User-agent" de la requête</localized_desc></description>
+                 <substitute>%{User-agent}i</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326 "http://www.example.com/start.html" "Mozilla/4.08 [en] (Win98; I ;Nav)"</text>
+                     <expectedTags>
+                          <expectedTag name="source_ip">127.0.0.1</expectedTag>
+                          <expectedTag name="source_logname">-</expectedTag>
+                          <expectedTag name="user">frank</expectedTag>
+                          <expectedTag name="request">GET /apache_pb.gif HTTP/1.0</expectedTag>
+                          <expectedTag name="status">200</expectedTag>
+                          <expectedTag name="len">2326</expectedTag>
+                          <expectedTag name="program">apache</expectedTag>
+                          <expectedTag name="request_header_referer_contents">http://www.example.com/start.html</expectedTag>
+                          <expectedTag name="useragent">Mozilla/4.08 [en] (Win98; I ;Nav)</expectedTag>
+                          <expectedTag name="url_path">/apache_pb.gif</expectedTag>
+                          <expectedTag name="method">GET</expectedTag>
+                          <expectedTag name="taxonomy">web server</expectedTag>
+                     </expectedTags>
+                </example>
+                <example>
+                     <text>62.210.161.232 - - [25/Apr/2012:14:02:38 +0200] "GET /favicon.ico HTTP/1.1" 200 - "https://updates.wallix.com/" "Opera/9.80 (Windows NT 6.1; WOW64; U; en) Presto/2.10.229 Version/11.62"</text>
+                     <expectedTags>
+                          <expectedTag name="source_ip">62.210.161.232</expectedTag>
+                          <expectedTag name="source_logname">-</expectedTag>
+                          <expectedTag name="user">-</expectedTag>
+                          <expectedTag name="request">GET /favicon.ico HTTP/1.1</expectedTag>
+                          <expectedTag name="status">200</expectedTag>
+                          <expectedTag name="len">0</expectedTag>
+                          <expectedTag name="program">apache</expectedTag>
+                          <expectedTag name="request_header_referer_contents">https://updates.wallix.com/</expectedTag>
+                          <expectedTag name="useragent">Opera/9.80 (Windows NT 6.1; WOW64; U; en) Presto/2.10.229 Version/11.62</expectedTag>
+                          <expectedTag name="url_path">/favicon.ico</expectedTag>
+                          <expectedTag name="method">GET</expectedTag>
+                          <expectedTag name="taxonomy">web server</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+    </patterns>
+    <commonTags>
+        <commonTag name="program">apache</commonTag>
+    </commonTags>
+</normalizer>
+
