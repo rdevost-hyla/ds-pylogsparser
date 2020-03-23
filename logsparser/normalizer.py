@@ -40,7 +40,7 @@ import urllib.parse as urlparse
 import logsparser.extras as extras # pyflakes:ignore
 
 try:
-    import GeoIP #pyflakes:ignore
+    import GeoIP  # pyflakes:ignore
     country_code_by_address = GeoIP.new(GeoIP.GEOIP_MEMORY_CACHE).country_code_by_addr
 except ImportError as e:
     country_code_by_address =lambda x: None
@@ -63,8 +63,8 @@ class Tag(object):
                  name,
                  tagtype,
                  substitute,
-                 description = {},
-                 callbacks = []):
+                 description=None,
+                 callbacks=None):
         """@param name: the tag's name
         @param tagtype: the tag's type name
         @param substitute: the string chain representing the tag in a log pattern
@@ -75,10 +75,10 @@ class Tag(object):
         self.name = name
         self.tagtype = tagtype
         self.substitute = substitute
-        self.description = description
-        self.callbacks = callbacks
+        self.description = description if description else {}
+        self.callbacks = callbacks if callbacks else []
 
-    def get_description(self, language = 'en'):
+    def get_description(self, language='en'):
         """@Return : The tag description"""
         return self.description.get(language, 'N/A')
 
@@ -89,8 +89,8 @@ class TagType(object):
                  name,
                  ttype,
                  regexp,
-                 description = {},
-                 flags = re.UNICODE | re.IGNORECASE):
+                 description=None,
+                 flags=re.UNICODE | re.IGNORECASE):
         """@param name: the tag type's name
         @param ttype: the expected type of the value fetched by the associated regular expression
         @param regexp: the regular expression (as text, not compiled) associated to this type
@@ -100,7 +100,7 @@ class TagType(object):
         self.name = name
         self.ttype = ttype
         self.regexp = regexp
-        self.description = description
+        self.description = description if description else {}
         try:
             self.compiled_regexp = re.compile(regexp, flags)
         except:
@@ -108,7 +108,7 @@ class TagType(object):
             
 
 # import the common tag types
-def get_generic_tagTypes(path = 'normalizers/common_tagTypes.xml'):
+def get_generic_tagTypes(path='normalizers/common_tagTypes.xml'):
     """Imports the common tag types.
     
     @return: a dictionary of tag types."""
@@ -184,16 +184,16 @@ class Pattern(object):
     def __init__(self,
                  name,
                  pattern,
-                 tags = {},
-                 description = '',
-                 commonTags = {},
-                 examples = [] ):
+                 tags=None,
+                 description=None,
+                 commonTags=None,
+                 examples=None):
         self.name = name
         self.pattern = pattern
-        self.tags = tags
-        self.description = description
-        self.examples = examples
-        self.commonTags = commonTags
+        self.tags = tags if tags else {}
+        self.description = description if description else {}
+        self.examples = examples if examples else []
+        self.commonTags = commonTags if commonTags else {}
         
     def normalize(self, logline):
         raise NotImplementedError
@@ -201,17 +201,17 @@ class Pattern(object):
     def test_examples(self):
         raise NotImplementedError
         
-    def get_description(self, language = 'en'):
-        tags_desc = dict([ (tag.name, tag.get_description(language))
-                           for tag in list(self.tags.values()) ])
-        substitutes = dict([ (tag.substitute, tag.name) for tag in list(self.tags.values()) ])
-        examples_desc = [ example.get_description(language) for example in self.examples ]
-        return { 'pattern' : self.pattern, 
-                 'description' : self.description.get(language, "N/A"),
-                 'tags' : tags_desc,
-                 'substitutes' : substitutes,
-                 'commonTags' : self.commonTags,
-                 'examples' : examples_desc }
+    def get_description(self, language='en'):
+        tags_desc = dict([(tag.name, tag.get_description(language))
+                          for tag in list(self.tags.values())])
+        substitutes = dict([(tag.substitute, tag.name) for tag in list(self.tags.values())])
+        examples_desc = [example.get_description(language) for example in self.examples]
+        return {'pattern': self.pattern,
+                'description': self.description.get(language, "N/A"),
+                'tags': tags_desc,
+                'substitutes': substitutes,
+                'commonTags': self.commonTags,
+                'examples': examples_desc }
 
 
 class CSVPattern(object):
@@ -226,7 +226,7 @@ class CSVPattern(object):
                  tagTypes=None,
                  genericTagTypes=None,
                  genericCallBacks=None,
-                 description='',
+                 description=None,
                  commonTags=None,
                  examples=None):
         """ 
@@ -252,7 +252,7 @@ class CSVPattern(object):
         self.tagTypes = tagTypes if tagTypes else {}
         self.genericTagTypes = genericTagTypes if genericTagTypes else {}
         self.genericCallBacks = genericCallBacks if genericCallBacks else {}
-        self.description = description
+        self.description = description if description else {}
         self.examples = examples if examples else []
         self.commonTags = commonTags if commonTags else {}
         _fields = self.pattern.split(self.separator)
@@ -267,8 +267,10 @@ class CSVPattern(object):
             # tagTypes defined in the conf file take precedence on the
             # generic ones. If nothing found either way, fall back to
             # Anything.
-            tag_regexp = self.tagTypes.get(self.tags[tag].tagtype,
-                               self.genericTagTypes.get(self.tags[tag].tagtype, self.genericTagTypes['Anything'])).regexp
+            tag_regexp = self.tagTypes.get(
+                self.tags[tag].tagtype,
+                self.genericTagTypes.get(
+                    self.tags[tag].tagtype, self.genericTagTypes['Anything'])).regexp
             r = re.compile(tag_regexp)
             field = self.tags[tag].substitute
             if field not in list(data.keys()):
@@ -287,20 +289,22 @@ class CSVPattern(object):
                 callbacks_names = self.tags[tag].callbacks
                 for cbname in callbacks_names:
                     try:
-                        # get the callback in the definition file, or look it up in the common library if not found
-                        callback = [cb for cb in list(self.callBacks.values()) if cb.name == cbname] or\
-                                   [cb for cb in list(self.genericCallBacks.values()) if cb.name == cbname]
+                        # get the callback in the definition file,
+                        # or look it up in the common library if not found
+                        callback = ([cb for cb in list(self.callBacks.values())
+                                     if cb.name == cbname] or
+                                    [cb for cb in list(self.genericCallBacks.values())
+                                     if cb.name == cbname])
                         callback = callback[0]
                     except:
                         warnings.warn("Unable to find callback %s for pattern %s" %
-                                     (cbname, self.name))
+                                      (cbname, self.name))
                         continue
                     try:
                         callback(data[tag], data)
                     except Exception as e:
                         raise Exception("Error on callback %s in pattern %s : %s - skipping" %
-                                       (cbname,
-                                        self.name, e))
+                                        (cbname, self.name, e))
         # remove temporary tags
         temp_tags = [t for t in list(data.keys()) if t.startswith('__')]
         for t in temp_tags:
@@ -317,7 +321,8 @@ class CSVPattern(object):
             return None
         # Try to retreive some fields with csv reader
         try:
-            data = [data for data in csv.reader([logline], delimiter = self.separator, quotechar = self.quotechar)][0]
+            data = [data for data in csv.reader([logline], delimiter=self.separator,
+                                                quotechar=self.quotechar)][0]
         except:
             return None
         # Check we have something in data
@@ -337,17 +342,17 @@ class CSVPattern(object):
     def test_examples(self):
         raise NotImplementedError
         
-    def get_description(self, language = 'en'):
-        tags_desc = dict([ (tag.name, tag.get_description(language))
-                           for tag in list(self.tags.values()) ])
-        substitutes = dict([ (tag.substitute, tag.name) for tag in list(self.tags.values()) ])
-        examples_desc = [ example.get_description(language) for example in self.examples ]
-        return { 'pattern' : self.pattern, 
-                 'description' : self.description.get(language, "N/A"),
-                 'tags' : tags_desc,
-                 'substitutes' : substitutes,
-                 'commonTags' : self.commonTags,
-                 'examples' : examples_desc }
+    def get_description(self, language='en'):
+        tags_desc = dict([(tag.name, tag.get_description(language))
+                          for tag in list(self.tags.values())])
+        substitutes = dict([(tag.substitute, tag.name) for tag in list(self.tags.values())])
+        examples_desc = [example.get_description(language) for example in self.examples]
+        return {'pattern': self.pattern,
+                'description': self.description.get(language, "N/A"),
+                'tags': tags_desc,
+                'substitutes': substitutes,
+                'commonTags': self.commonTags,
+                'examples': examples_desc }
 
 
 class CallbackFunction(object):
@@ -368,10 +373,10 @@ class CallbackFunction(object):
         self.name = name
         
         # Setup a standard-compatible python environment
-        builtins   = dict()
-        globs      = dict()
-        locs       = dict()
-        builtins["locals"]  = lambda: locs
+        builtins = dict()
+        globs = dict()
+        locs = dict()
+        builtins["locals"] = lambda: locs
         builtins["globals"] = lambda: globs
         globs["__builtins__"] = builtins
         globs["__name__"] = "SAFE_ENV"
@@ -440,10 +445,10 @@ class Normalizer(object):
             raise ValueError("The normalizer configuration lacks a name.")
         self.version = float(normalizer.get('version')) or 1.0
         self.appliedTo = normalizer.get('appliedTo') or 'raw'
-        self.re_flags = ( (normalizer.get('unicode') == "yes" and re.UNICODE ) or 0 ) |\
-                        ( (normalizer.get('ignorecase') == "yes" and re.IGNORECASE ) or 0 ) |\
-                        ( (normalizer.get('multiline') == "yes" and re.MULTILINE ) or 0 )
-        self.matchtype = ( normalizer.get('matchtype') == "search" and "search" ) or 'match'
+        self.re_flags = (((normalizer.get('unicode') == "yes" and re.UNICODE) or 0) |
+                         ((normalizer.get('ignorecase') == "yes" and re.IGNORECASE) or 0) |
+                         ((normalizer.get('multiline') == "yes" and re.MULTILINE) or 0))
+        self.matchtype = (normalizer.get('matchtype') == "search" and "search") or 'match'
         self.expandWhitespaces = normalizer.get("expandWhitespaces") == "yes"
         try:
             self.taxonomy = normalizer.get('taxonomy')
@@ -557,21 +562,21 @@ class Normalizer(object):
                     self.callbacks, self.tagTypes, self.genericTagTypes, self.genericCallBacks, p_description,
                     p_commonTags, p_examples)
 
-    def get_description(self, language = "en"):
+    def get_description(self, language="en"):
         return "%s v. %s" % (self.name, self.version)
     
-    def get_long_description(self, language = 'en'):
+    def get_long_description(self, language='en'):
         patterns_desc = [ pattern.get_description(language)
                           for pattern in list(self.patterns.values()) ]
-        return { 'name' : self.name,
-                 'version' : self.version,
-                 'authors' : self.authors,
-                 'description' : self.description.get(language, "N/A"),
-                 'patterns' : patterns_desc,
-                 'commonTags' : self.commonTags,
-                 'taxonomy' : self.taxonomy }
+        return {'name': self.name,
+                'version': self.version,
+                'authors': self.authors,
+                'description': self.description.get(language, "N/A"),
+                'patterns': patterns_desc,
+                'commonTags': self.commonTags,
+                'taxonomy': self.taxonomy}
 
-    def get_uncompiled_regexp(self, p = None, increment = 0):
+    def get_uncompiled_regexp(self, p=None, increment=0):
         """returns the uncompiled regular expression associated to pattern named p.
         If p is None, all patterns are stitched together, ready for compilation.
         increment is the starting value to use for the generic tag names in the
@@ -613,7 +618,7 @@ class Normalizer(object):
             regexps.append("(?:%s)" % regexp)
         return "|".join(regexps), tags_translations, tags_to_pattern, increment
 
-    def normalize(self, log, do_not_check_prereq = False):
+    def normalize(self, log, do_not_check_prereq=False):
         """normalization in standalone mode.
         @param log: a dictionary or an object providing at least a get() method
         @param do_not_check_prereq: if set to True, the prerequisite tags check
@@ -622,8 +627,8 @@ class Normalizer(object):
         if isinstance(log, str) or not hasattr(log, "get"):
             raise ValueError("the normalizer expects an argument of type Dict")
         # Test prerequisites
-        if all( [ re.match(value, log.get(prereq, ''))
-                  for prereq, value in list(self.prerequisites.items()) ]) or\
+        if all([re.match(value, log.get(prereq, ''))
+                for prereq, value in list(self.prerequisites.items())]) or\
            do_not_check_prereq:
             csv_patterns = [csv_pattern for csv_pattern in list(self.patterns.values())
                             if isinstance(csv_pattern, CSVPattern)]
@@ -750,7 +755,7 @@ class Normalizer(object):
         
 
 # Documentation generator
-def doc2RST(description, gettext = None):
+def doc2RST(description, gettext=None):
     """ Returns a RestructuredText documentation from
         a parser description.
         @param description: the long description of the parser.

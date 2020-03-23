@@ -37,7 +37,7 @@ from lxml.etree import parse, DTD, fromstring as XMLfromstring
 # import xml.etree.ElementTree as ET
 
 
-class LogNormalizer():
+class LogNormalizer:
     """Basic normalization flow manager.
     Normalizers definitions are loaded from a path and checked against the DTD.
     If the definitions are syntactically correct, the normalizers are
@@ -56,7 +56,7 @@ class LogNormalizer():
     * Conversion of date tags to UTC, if the "_timezone" was set prior to
       the normalization process."""
     
-    def __init__(self, normalizers_paths, active_normalizers = {}):
+    def __init__(self, normalizers_paths, active_normalizers=None):
         """
         Instantiates a flow manager. The default behavior is to activate every
         available normalizer.
@@ -66,8 +66,9 @@ class LogNormalizer():
         @param active_normalizers: a dictionary of active normalizers
         in the form {name: [True|False]}.
         """
+        active_normalizers = active_normalizers if active_normalizers else {}
         if not isinstance(normalizers_paths, list or tuple):
-            normalizers_paths = [normalizers_paths,]
+            normalizers_paths = [normalizers_paths, ]
         self.normalizers_paths = normalizers_paths
         self.active_normalizers = active_normalizers
         self.dtd, self.ctt, self.ccb = None, None, None
@@ -96,7 +97,7 @@ class LogNormalizer():
         
     def reload(self):
         """Refreshes this instance's normalizers pool."""
-        self.normalizers = { 'raw' : [], 'body' : [] }
+        self.normalizers = {'raw': [], 'body': []}
         for path in self.iter_normalizer():
             norm = parse(open(path))
             if not self.dtd.validate(norm):
@@ -120,9 +121,9 @@ class LogNormalizer():
         for path in self.normalizers_paths:
             for root, dirs, files in os.walk(path):
                 for name in files:
-                    if not name.startswith('common_tagTypes') and \
-                       not name.startswith('common_callBacks') and \
-                           name.endswith('.xml'):
+                    if (not name.startswith('common_tagTypes') and
+                        not name.startswith('common_callBacks') and
+                            name.endswith('.xml')):
                         yield os.path.join(root, name)
 
     def __len__(self):
@@ -130,7 +131,7 @@ class LogNormalizer():
         """
         return len([n for n in self.iter_normalizer()])
 
-    def update_normalizer(self, raw_xml_contents, name = None, dir_path = None ):
+    def update_normalizer(self, raw_xml_contents, name=None, dir_path=None):
         """used to add or update a normalizer.
         @param raw_xml_contents: XML description of normalizer as flat XML. It
         must comply to the DTD.
@@ -145,22 +146,22 @@ class LogNormalizer():
                 path = dir_path
         xmlconf = XMLfromstring(raw_xml_contents).getroottree()
         if not self.dtd.validate(xmlconf):
-            raise ValueError("This definition file does not follow the normalizers DTD :\n\n%s" % \
-                               self.dtd.error_log.filter_from_errors())
+            raise ValueError("This definition file does not follow the normalizers DTD :\n\n%s" %
+                             self.dtd.error_log.filter_from_errors())
         if not name:
             name = xmlconf.getroot().get('name')
         if not name.endswith('.xml'):
             name += '.xml'
         xmlconf.write(open(os.path.join(path, name), 'wb'),
-                      encoding = 'utf8',
-                      method = 'xml',
-                      pretty_print = True)
+                      encoding='utf8',
+                      method='xml',
+                      pretty_print=True)
         self.reload()
 
     def get_normalizer_by_uuid(self, uuid):
         """Returns normalizer by uuid."""
         try:
-            norm = [ u for u in sum(list(self.normalizers.values()), []) if u.uuid == uuid][0]
+            norm = [u for u in sum(list(self.normalizers.values()), []) if u.uuid == uuid][0]
             return norm
         except:
             raise ValueError("Normalizer uuid : %s not found" % uuid)
@@ -172,15 +173,14 @@ class LogNormalizer():
     def get_normalizer_path(self, uuid):
         """Returns the filesystem path of a normalizer."""
         return self.get_normalizer_by_uuid(uuid).sys_path
-
     
     def activate_normalizers(self):
         """Activates normalizers according to what was set by calling
         set_active_normalizers. If no call to the latter function has been
         made so far, this method activates every normalizer."""
         if not self.active_normalizers:
-            self.active_normalizers = dict([ (n.uuid, True) for n in \
-                        sum([ v for v in list(self.normalizers.values())], []) ])
+            self.active_normalizers = dict([
+                (n.uuid, True) for n in sum([v for v in list(self.normalizers.values())], [])])
         # fool-proof the list
         self.set_active_normalizers(self.active_normalizers)
         # build an ordered cache to speed things up
@@ -196,8 +196,8 @@ class LogNormalizer():
             if self.active_normalizers.get(norm.uuid, False):
                 self._cache.append(norm)
         # Then, apply everything else
-        for norm in sum([ self.normalizers[u] for u in self.normalizers 
-                                           if u not in ['raw', 'body']], []):
+        for norm in sum([self.normalizers[u] for u in self.normalizers
+                         if u not in ['raw', 'body']], []):
             if self.active_normalizers.get(norm.uuid, False):
                 self._cache.append(norm)
 
@@ -206,14 +206,15 @@ class LogNormalizer():
         values are True|False according to the normalizer's activation state."""
         return self.active_normalizers
 
-    def set_active_normalizers(self, norms = {}):
+    def set_active_normalizers(self, norms=None):
         """Sets the active/inactive normalizers. Default behavior is to
         deactivate every normalizer.
         
         @param norms: a dictionary, similar to the one returned by
         get_active_normalizers."""
-        default = dict([ (n.uuid, False) for n in \
-                            sum([ v for v in list(self.normalizers.values())], []) ])
+        norms = norms if norms else {}
+        default = dict([(n.uuid, False) for n in
+                        sum([v for v in list(self.normalizers.values())], [])])
         default.update(norms)
         self.active_normalizers = default
         
@@ -234,7 +235,7 @@ class LogNormalizer():
         >>> ln = lognormalizer.LogNormalizer('/usr/local/share/normalizers/')
         >>> mylog = {'raw' : 'Jul 18 15:35:01 zoo /USR/SBIN/CRON[14338]: (root) CMD (/srv/git/redmine-changesets.sh)'}
         >>> ln.lognormalize(mylog)
-        >>> pprint mylog
+        >>> pprint(mylog)
         {'body': '(root) CMD (/srv/git/redmine-changesets.sh)',
         'date': datetime.datetime(2011, 7, 18, 15, 35, 1),
         'pid': '14338',
@@ -262,5 +263,5 @@ class LogNormalizer():
         """Used for testing only, the normalizers' tags prerequisite are
         deactivated."""
         for norm in self._cache:
-            log = norm.normalize(log, do_not_check_prereq = True)
+            log = norm.normalize(log, do_not_check_prereq=True)
         return log
