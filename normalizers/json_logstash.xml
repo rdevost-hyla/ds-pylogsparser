@@ -51,16 +51,16 @@
     <callbacks>
         <callback name="encode_level">
 LEVELS = [
-("[WARN ]", 40),
-("[ERROR]", 30),
-("[INFO ]", 20),
-("[TRACE]", 15),
-("[DEBUG]", 10),
+("[WARN ]", 40, "WARNING"),
+("[ERROR]", 30, "ERROR"),
+("[INFO ]", 20, "INFO"),
+("[TRACE]", 15, "INFO"),
+("[DEBUG]", 10, "DEBUG"),
 ]
 log_level = ''
 log_level_num = 0
-for (level, level_num) in LEVELS:
-    loc = value.find(level)
+for (level_code, level_num, level) in LEVELS:
+    loc = value.find(level_code)
     if loc == -1:
         continue
     log_level = level
