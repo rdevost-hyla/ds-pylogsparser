@@ -66,13 +66,13 @@ class LogNormalizer:
         @param active_normalizers: a dictionary of active normalizers
         in the form {name: [True|False]}.
         """
-        active_normalizers = active_normalizers if active_normalizers else {}
         if not isinstance(normalizers_paths, list or tuple):
             normalizers_paths = [normalizers_paths, ]
         self.normalizers_paths = normalizers_paths
-        self.active_normalizers = active_normalizers
+        self.active_normalizers = active_normalizers if active_normalizers else {}
         self.dtd, self.ctt, self.ccb = None, None, None
-        
+        self.normalizers = {'raw': [], 'body': []}
+
         # Walk through paths for normalizer.dtd and common_tagTypes.xml
         # /!\ dtd file and common elements will be overrriden if present in
         # many directories.

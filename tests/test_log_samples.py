@@ -44,8 +44,8 @@ ln = lognormalizer.LogNormalizer(normalizer_path)
 
 
 def _get_timeoffset(timezone, localtz):
-        n = datetime.now()
-        return localtz.localize(n) - timezone.localize(n)
+    n = datetime.now()
+    return localtz.localize(n) - timezone.localize(n)
 
 
 class Test(unittest.TestCase):
@@ -93,7 +93,7 @@ class Test(unittest.TestCase):
                  'pid': '8847',
                  'date': now.replace(microsecond=0)})
 
-        now = now.replace(month=now.month%12+1, day=1)
+        now = now.replace(month=now.month % 12+1, day=1)
         self.aS("<40>%s neo kernel: tun_wallix: Disabled Privacy Extensions" % now.strftime("%b %d %H:%M:%S"),
                 {'date': now.replace(microsecond=0, year=now.year-1),
                  'body': 'tun_wallix: Disabled Privacy Extensions',
@@ -102,10 +102,10 @@ class Test(unittest.TestCase):
                  'facility': 'syslog',
                  'facility_code': '5',
                  'source': 'neo',
-                 'program': 'kernel' })
+                 'program': 'kernel'})
         
         # test the tolerance up to the minute : 1 ...
-        now = datetime.now() + timedelta(seconds = +57)
+        now = datetime.now() + timedelta(seconds=+57)
         self.aS("<40>%s neo kernel: tun_wallix: Disabled Privacy Extensions" % now.strftime("%b %d %H:%M:%S"),
                 {'date': now.replace(microsecond=0),
                  'body': 'tun_wallix: Disabled Privacy Extensions',
@@ -114,9 +114,9 @@ class Test(unittest.TestCase):
                  'facility': 'syslog',
                  'facility_code': '5',
                  'source': 'neo',
-                 'program': 'kernel' })
+                 'program': 'kernel'})
         # ... and 2
-        now = datetime.now() + timedelta(seconds = +63)
+        now = datetime.now() + timedelta(seconds=+63)
         self.aS("<40>%s neo kernel: tun_wallix: Disabled Privacy Extensions" % now.strftime("%b %d %H:%M:%S"),
                 {'date': now.replace(microsecond=0, year=now.year-1),
                  'body': 'tun_wallix: Disabled Privacy Extensions',
@@ -125,7 +125,7 @@ class Test(unittest.TestCase):
                  'facility': 'syslog',
                  'facility_code': '5',
                  'source': 'neo',
-                 'program': 'kernel' })
+                 'program': 'kernel'})
 
     def test_syslog_with_timezone(self):
         """Test syslog logs with a timezone info"""
@@ -147,7 +147,7 @@ class Test(unittest.TestCase):
                  'source': 'neo',
                  'program': 'kernel',
                  'date': now.replace(microsecond=0)},
-                 tzinfo = 'Asia/Tokyo')
+                tzinfo='Asia/Tokyo')
         # then fight the future
         now = datetime.now() + offset + timedelta(hours=+2)
         self.aS("<40>%s neo kernel: tun_wallix: Disabled Privacy Extensions" % now.strftime("%b %d %H:%M:%S"),
@@ -159,7 +159,7 @@ class Test(unittest.TestCase):
                  'source': 'neo',
                  'program': 'kernel',
                  'date': now.replace(microsecond=0, year=now.year-1)},
-                 tzinfo = 'Asia/Tokyo')
+                tzinfo='Asia/Tokyo')
         # and finally, without the tz info ?
         now = datetime.now() + offset
         total_seconds = (offset.microseconds +
@@ -264,7 +264,7 @@ class Test(unittest.TestCase):
     def test_squid(self):
         """Test squid logs"""
         self.aS("<40>Dec 21 07:49:02 hosting03 squid[54]: 1196341497.777    784 127.0.0.1 TCP_MISS/200 106251 GET http://fr.yahoo.com/ vbe DIRECT/217.146.186.51 text/html",
-                { 'program': 'squid',
+                {'program': 'squid',
                   'date': datetime(2007, 11, 29, 13, 4, 57, 777000),
                   'elapsed': '784',
                   'source_ip': '127.0.0.1',
@@ -273,9 +273,9 @@ class Test(unittest.TestCase):
                   'len': '106251',
                   'method': 'GET',
                   'url': 'http://fr.yahoo.com/',
-                  'user': 'vbe' })
+                  'user': 'vbe'})
         self.aS("<40>Dec 21 07:49:02 hosting03 : 1196341497.777    784 127.0.0.1 TCP_MISS/404 106251 GET http://fr.yahoo.com/gjkgf/gfgff/ - DIRECT/217.146.186.51 text/html",
-                { 'program': 'squid',
+                {'program': 'squid',
                   'date': datetime(2007, 11, 29, 13, 4, 57, 777000),
                   'elapsed': '784',
                   'source_ip': '127.0.0.1',
@@ -283,7 +283,7 @@ class Test(unittest.TestCase):
                   'status': '404',
                   'len': '106251',
                   'method': 'GET',
-                  'url': 'http://fr.yahoo.com/gjkgf/gfgff/' })
+                  'url': 'http://fr.yahoo.com/gjkgf/gfgff/'})
         self.aS("Oct 22 01:27:16 pluto squid: 1259845087.188     10 82.238.42.70 TCP_MISS/200 13121 GET http://ak.bluestreak.com//adv/sig/%5E16238/%5E7451318/VABT.swf?url_download=&width=300&height=250&vidw=300&vidh=250&startbbanner=http://ak.bluestreak.com//adv/sig/%5E16238/%5E7451318/vdo_300x250_in.swf&endbanner=http://ak.bluestreak.com//adv/sig/%5E16238/%5E7451318/vdo_300x250_out.swf&video_hd=http://aak.bluestreak.com//adv/sig/%5E16238/%5E7451318/vdo_300x250_hd.flv&video_md=http://ak.bluestreak.com//adv/sig/%5E16238/%5E7451318/vdo_300x250_md.flv&video_bd=http://ak.bluestreak.comm//adv/sig/%5E16238/%5E7451318/vdo_300x250_bd.flv&url_tracer=http%3A//s0b.bluestreak.com/ix.e%3Fpx%26s%3D8008666%26a%3D7451318%26t%3D&start=2&duration1=3&duration2=4&duration3=5&durration4=6&duration5=7&end=8&hd=9&md=10&bd=11&gif=12&hover1=13&hover2=14&hover3=15&hover4=16&hover5=17&hover6=18&replay=19&sound_state=off&debug=0&playback_controls=off&tracking_objeect=tracking_object_8008666&url=javascript:bluestreak8008666_clic();&rnd=346.2680651591202 fbo DIRECT/92.123.65.129 application/x-shockwave-flash",
                 {'program': "squid",
                  'date' : datetime.utcfromtimestamp(float(1259845087.188)),
@@ -302,42 +302,42 @@ class Test(unittest.TestCase):
                 {'program': "squid",
                  'date': datetime.utcfromtimestamp(float(1330330923.254)),
                  'elapsed': "119",
-                 "source_ip" : "10.10.5.5",
-                 "event_id" : "TCP_MISS",
-                 "status" : "302",
-                 "len" : "667",
-                 "method" : "GET",
+                 "source_ip": "10.10.5.5",
+                 "event_id": "TCP_MISS",
+                 "status": "302",
+                 "len": "667",
+                 "method": "GET",
                  'url': "http://c.astrocenter.fr/r.aspx?M=PRFREEV3_20120226_FR_24651456&L=http*3A*2F*2Fhoroscope.20minutes.fr*2F20Minutes*2Fimages*2FMailHeader*2Faf-0--4700-MailLogo.gif&O=685037391"
                  })
 
     def test_netfilter(self):
         """Test netfilter logs"""
         self.aS("<40>Dec 26 09:30:07 dedibox kernel: FROM_INTERNET_DENY IN=eth0 OUT= MAC=00:40:63:e7:b2:17:00:15:fa:80:47:3f:08:00 SRC=88.252.4.37 DST=88.191.34.16 LEN=48 TOS=0x00 PREC=0x00 TTL=117 ID=56818 DF PROTO=TCP SPT=1184 DPT=445 WINDOW=65535 RES=0x00 SYN URGP=0",
-                { 'program': 'netfilter',
-                  'inbound_int': 'eth0',
-                  'dest_mac': '00:40:63:e7:b2:17',
-                  'source_mac': '00:15:fa:80:47:3f',
-                  'source_ip': '88.252.4.37',
-                  'dest_ip': '88.191.34.16',
-                  'len': '48',
-                  'protocol': 'TCP',
-                  'source_port': '1184',
-                  'prefix': 'FROM_INTERNET_DENY',
-                  'dest_port': '445' })
+                {'program': 'netfilter',
+                 'inbound_int': 'eth0',
+                 'dest_mac': '00:40:63:e7:b2:17',
+                 'source_mac': '00:15:fa:80:47:3f',
+                 'source_ip': '88.252.4.37',
+                 'dest_ip': '88.191.34.16',
+                 'len': '48',
+                 'protocol': 'TCP',
+                 'source_port': '1184',
+                 'prefix': 'FROM_INTERNET_DENY',
+                 'dest_port': '445'})
         self.aS("<40>Dec 26 08:45:23 dedibox kernel: TO_INTERNET_DENY IN=vif2.0 OUT=eth0 SRC=10.116.128.6 DST=82.225.197.239 LEN=121 TOS=0x00 PREC=0x00 TTL=63 ID=15592 DF PROTO=TCP SPT=993 DPT=56248 WINDOW=4006 RES=0x00 ACK PSH FIN URGP=0 ",
-                { 'program': 'netfilter',
-                  'inbound_int': 'vif2.0',
-                  'outbound_int': 'eth0',
-                  'source_ip': '10.116.128.6',
-                  'dest_ip': '82.225.197.239',
-                  'len': '121',
-                  'protocol': 'TCP',
-                  'source_port': '993',
-                  'dest_port': '56248' })
+                {'program': 'netfilter',
+                 'inbound_int': 'vif2.0',
+                 'outbound_int': 'eth0',
+                 'source_ip': '10.116.128.6',
+                 'dest_ip': '82.225.197.239',
+                 'len': '121',
+                 'protocol': 'TCP',
+                 'source_port': '993',
+                 'dest_port': '56248'})
         
         # One malformed log
         self.aS("<40>Dec 26 08:45:23 dedibox kernel: TO_INTERNET_DENY IN=vif2.0 OUT=eth0 DST=82.225.197.239 LEN=121 TOS=0x00 PREC=0x00 TTL=63 ID=15592 DF PROTO=TCP SPT=993 DPT=56248 WINDOW=4006 RES=0x00 ACK PSH FIN URGP=0 ",
-                { 'program': 'kernel' },
+                {'program': 'kernel'},
                 ('inbound_int', 'len'))
 
         self.aS("Sep 28 15:19:59 tulipe-input kernel: [1655854.311830] DROPPED: IN=eth0 OUT= MAC=32:42:cd:02:72:30:00:23:7d:c6:35:e6:08:00 SRC=10.10.4.7 DST=10.10.4.86 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=20805 DF PROTO=TCP SPT=34259 DPT=111 WINDOW=5840 RES=0x00 SYN URGP=0",
@@ -351,20 +351,20 @@ class Test(unittest.TestCase):
                  'dest_port': '111',
                  'dest_mac': '32:42:cd:02:72:30',
                  'source_mac': '00:23:7d:c6:35:e6',
-                 'prefix': '[1655854.311830] DROPPED:' })
+                 'prefix': '[1655854.311830] DROPPED:'})
 
     def test_dhcpd(self):
         """Test DHCPd log normalization"""
         self.aS("<40>Dec 25 15:00:15 gnaganok dhcpd: DHCPDISCOVER from 02:1c:25:a3:32:76 via 183.213.184.122",
-                { 'program': 'dhcpd',
-                  'action': 'DISCOVER',
-                  'source_mac': '02:1c:25:a3:32:76',
-                  'via': '183.213.184.122' })
+                {'program': 'dhcpd',
+                 'action': 'DISCOVER',
+                 'source_mac': '02:1c:25:a3:32:76',
+                 'via': '183.213.184.122'})
         self.aS("<40>Dec 25 15:00:15 gnaganok dhcpd: DHCPDISCOVER from 02:1c:25:a3:32:76 via vlan18.5",
-                { 'program': 'dhcpd',
-                  'action': 'DISCOVER',
-                  'source_mac': '02:1c:25:a3:32:76',
-                  'via': 'vlan18.5' })
+                {'program': 'dhcpd',
+                 'action': 'DISCOVER',
+                 'source_mac': '02:1c:25:a3:32:76',
+                 'via': 'vlan18.5'})
         for log in [
             "DHCPOFFER on 183.231.184.122 to 00:13:ec:1c:06:5b via 183.213.184.122",
             "DHCPREQUEST for 183.231.184.122 from 00:13:ec:1c:06:5b via 183.213.184.122",
@@ -373,76 +373,76 @@ class Test(unittest.TestCase):
             "DHCPDECLINE of 183.231.184.122 from 00:13:ec:1c:06:5b via 183.213.184.122 (bla)",
             "DHCPRELEASE of 183.231.184.122 from 00:13:ec:1c:06:5b via 183.213.184.122 for nonexistent lease" ]:
             self.aS("<40>Dec 25 15:00:15 gnaganok dhcpd: %s" % log,
-                { 'program': 'dhcpd',
-                  'source_ip': '183.231.184.122',
-                  'source_mac': '00:13:ec:1c:06:5b',
-                  'via': '183.213.184.122' })
+                    {'program': 'dhcpd',
+                     'source_ip': '183.231.184.122',
+                     'source_mac': '00:13:ec:1c:06:5b',
+                     'via': '183.213.184.122'})
         self.aS("<40>Dec 25 15:00:15 gnaganok dhcpd: DHCPINFORM from 183.231.184.122",
-                { 'program': 'dhcpd',
-                  'source_ip': '183.231.184.122',
-                  'action': 'INFORM' })
+                {'program': 'dhcpd',
+                 'source_ip': '183.231.184.122',
+                 'action': 'INFORM'})
 
     def test_sshd(self):
         """Test SSHd normalization"""
         self.aS("<40>Dec 26 10:32:40 naruto sshd[2274]: Failed password for bernat from 127.0.0.1 port 37234 ssh2",
-                { 'program': 'sshd',
-                  'action': 'fail',
-                  'user': 'bernat',
-                  'method': 'password',
-                  'source_ip': '127.0.0.1' })
+                {'program': 'sshd',
+                 'action': 'fail',
+                 'user': 'bernat',
+                 'method': 'password',
+                 'source_ip': '127.0.0.1'})
         self.aS("<40>Dec 26 10:32:40 naruto sshd[2274]: Failed password for invalid user jfdghfg from 127.0.0.1 port 37234 ssh2",
-                { 'program': 'sshd',
-                  'action': 'fail',
-                  'user': 'jfdghfg',
-                  'method': 'password',
-                  'source_ip': '127.0.0.1' })
+                {'program': 'sshd',
+                 'action': 'fail',
+                 'user': 'jfdghfg',
+                 'method': 'password',
+                 'source_ip': '127.0.0.1'})
         self.aS("<40>Dec 26 10:32:40 naruto sshd[2274]: Failed none for invalid user kgjfk from 127.0.0.1 port 37233 ssh2",
-                { 'program': 'sshd',
+                {'program': 'sshd',
                   'action': 'fail',
                   'user': 'kgjfk',
                   'method': 'none',
-                  'source_ip': '127.0.0.1' })
+                  'source_ip': '127.0.0.1'})
         self.aS("<40>Dec 26 10:32:40 naruto sshd[2274]: Accepted password for bernat from 127.0.0.1 port 37234 ssh2",
-                { 'program': 'sshd',
+                {'program': 'sshd',
                   'action': 'accept',
                   'user': 'bernat',
                   'method': 'password',
-                  'source_ip': '127.0.0.1' })
+                  'source_ip': '127.0.0.1'})
         self.aS("<40>Dec 26 10:32:40 naruto sshd[2274]: Accepted publickey for bernat from 192.168.251.2 port 60429 ssh2",
-                { 'program': 'sshd',
+                {'program': 'sshd',
                   'action': 'accept',
                   'user': 'bernat',
                   'method': 'publickey',
-                  'source_ip': '192.168.251.2' })
+                  'source_ip': '192.168.251.2'})
         # See http://www.ossec.net/en/attacking-loganalysis.html
         self.aS("<40>Dec 26 10:32:40 naruto sshd[2274]: Failed password for invalid user myfakeuser from 10.1.1.1 port 123 ssh2 from 192.168.50.65 port 34813 ssh2",
-               { 'program': 'sshd',
-                  'action': 'fail',
-                  'user': 'myfakeuser from 10.1.1.1 port 123 ssh2',
-                  'method': 'password',
-                  'source_ip': '192.168.50.65' })
+                {'program': 'sshd',
+                 'action': 'fail',
+                 'user': 'myfakeuser from 10.1.1.1 port 123 ssh2',
+                 'method': 'password',
+                 'source_ip': '192.168.50.65'})
 
     def test_pam(self):
         """Test PAM normalization"""
         self.aS("<40>Dec 26 10:32:25 s_all@naruto sshd[2263]: pam_unix(ssh:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=localhost user=bernat",
-                { 'program': 'ssh',
-                  'component': 'pam_unix',
-                  'type': 'auth',
-                  'user': 'bernat' })
+                {'program': 'ssh',
+                 'component': 'pam_unix',
+                 'type': 'auth',
+                 'user': 'bernat'})
         self.aS("<40>Dec 26 10:09:01 s_all@naruto CRON[2030]: pam_unix(cron:session): session opened for user root by (uid=0)",
-                { 'program': 'cron',
-                  'component': 'pam_unix',
-                  'type': 'session',
-                  'user': 'root' })
+                {'program': 'cron',
+                 'component': 'pam_unix',
+                 'type': 'session',
+                 'user': 'root'})
         self.aS("<40>Dec 26 10:32:25 s_all@naruto sshd[2263]: pam_unix(ssh:auth): check pass; user unknown",
-                { 'program': 'ssh',
-                  'component': 'pam_unix',
-                  'type': 'auth' })
+                {'program': 'ssh',
+                 'component': 'pam_unix',
+                 'type': 'auth'})
         # This one should be better handled
         self.aS("<40>Dec 26 10:32:25 s_all@naruto sshd[2263]: pam_unix(ssh:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=localhost",
-                { 'program': 'ssh',
-                  'component': 'pam_unix',
-                  'type': 'auth' })
+                {'program': 'ssh',
+                 'component': 'pam_unix',
+                 'type': 'auth'})
 
     def test_lea(self):
         """Test LEA normalization"""
@@ -507,56 +507,56 @@ class Test(unittest.TestCase):
     def test_symantec8(self):
         """Test Symantec version 8 normalization"""
         self.aS("""200A13080122,23,2,8,TRAVEL00,SYSTEM,,,,,,,16777216,"Symantec AntiVirus Realtime Protection Loaded.",0,,0,,,,,0,,,,,,,,,,SAMPLE_COMPUTER,,,,Parent,GROUP,,8.0.93330""",
-                {"program" : "symantec",
+                {"program": "symantec",
                  "date" : datetime(2002, 11, 19, 8, 1, 34),
-                 "category" : "Summary",
-                 "local_host" : "TRAVEL00",
-                 "domain_name" : "GROUP",
-                 "event_logger_type" : "System",
-                 "event_id" : "GL_EVENT_RTS_LOAD",
-                 "eventblock_action" : "EB_LOG",
-                 "group_id" : "0",
-                 "operation_flags" : "0",
-                 "parent" : "SAMPLE_COMPUTER",
-                 "scan_id" : "0",
-                 "server_group" : "Parent",
-                 "user" : "SYSTEM",
-                 "version" : "8.0.93330"})
+                 "category": "Summary",
+                 "local_host": "TRAVEL00",
+                 "domain_name": "GROUP",
+                 "event_logger_type": "System",
+                 "event_id": "GL_EVENT_RTS_LOAD",
+                 "eventblock_action": "EB_LOG",
+                 "group_id": "0",
+                 "operation_flags": "0",
+                 "parent": "SAMPLE_COMPUTER",
+                 "scan_id": "0",
+                 "server_group": "Parent",
+                 "user": "SYSTEM",
+                 "version": "8.0.93330"})
 
     # Need to find real symantec version 9 log lines
     def test_symantec9(self):
         """Test Symantec version 9 normalization"""
         self.aS("""200A13080122,23,2,8,TRAVEL00,SYSTEM,,,,,,,16777216,"Symantec AntiVirus Realtime Protection Loaded.",0,,0,,,,,0,,,,,,,,,,SAMPLE_COMPUTER,,,,Parent,GROUP,,9.0.93330,,,,,,,,,,,,,,,,,,,,""",
-                {"program" : "symantec",
+                {"program": "symantec",
                  "date" : datetime(2002, 11, 19, 8, 1, 34),
-                 "category" : "Summary",
-                 "local_host" : "TRAVEL00",
-                 "domain_name" : "GROUP",
-                 "event_logger_type" : "System",
-                 "event_id" : "GL_EVENT_RTS_LOAD",
-                 "eventblock_action" : "EB_LOG",
-                 "group_id" : "0",
-                 "operation_flags" : "0",
-                 "parent" : "SAMPLE_COMPUTER",
-                 "scan_id" : "0",
-                 "server_group" : "Parent",
-                 "user" : "SYSTEM",
-                 "version" : "9.0.93330"})
+                 "category": "Summary",
+                 "local_host": "TRAVEL00",
+                 "domain_name": "GROUP",
+                 "event_logger_type": "System",
+                 "event_id": "GL_EVENT_RTS_LOAD",
+                 "eventblock_action": "EB_LOG",
+                 "group_id": "0",
+                 "operation_flags": "0",
+                 "parent": "SAMPLE_COMPUTER",
+                 "scan_id": "0",
+                 "server_group": "Parent",
+                 "user": "SYSTEM",
+                 "version": "9.0.93330"})
     
     def test_arkoonFAST360(self):
         """Test Arkoon FAST360 normalization"""
         self.aS('AKLOG-id=firewall time="2004-02-25 17:38:57" fw=myArkoon aktype=IP gmtime=1077727137 ip_log_type=ENDCONN src=10.10.192.61 dst=10.10.192.255 proto="137/udp" protocol=17 port_src=137 port_dest=137 intf_in=eth0 intf_out= pkt_len=78 nat=NO snat_addr=0 snat_port=0 dnat_addr=0 dnat_port=0 user="userName" pri=3 rule="myRule" action=DENY reason="Blocked by filter" description="dst addr received from Internet is private"',
-                {"program" : "arkoon",
+                {"program": "arkoon",
                  "date" : datetime(2004, 0o2, 25, 16, 38, 57),
-                 "event_id" : "IP",
-                 "priority" : "3",
-                 "local_host" : "myArkoon",
-                 "user" : "userName",
+                 "event_id": "IP",
+                 "priority": "3",
+                 "local_host": "myArkoon",
+                 "user": "userName",
                  "protocol": "udp",
-                 "dest_ip" : "10.10.192.255",
-                 "source_ip" : "10.10.192.61",
-                 "reason" : "Blocked by filter",
-                 "ip_log_type" : "ENDCONN",
+                 "dest_ip": "10.10.192.255",
+                 "source_ip": "10.10.192.61",
+                 "reason": "Blocked by filter",
+                 "ip_log_type": "ENDCONN",
                  "body" : 'id=firewall time="2004-02-25 17:38:57" fw=myArkoon aktype=IP gmtime=1077727137 ip_log_type=ENDCONN src=10.10.192.61 dst=10.10.192.255 proto="137/udp" protocol=17 port_src=137 port_dest=137 intf_in=eth0 intf_out= pkt_len=78 nat=NO snat_addr=0 snat_port=0 dnat_addr=0 dnat_port=0 user="userName" pri=3 rule="myRule" action=DENY reason="Blocked by filter" description="dst addr received from Internet is private"'})
 
         # Assuming this kind of log with syslog like header is typically sent over the wire.
@@ -605,8 +605,7 @@ class Test(unittest.TestCase):
     def test_Snare(self):
         """Test Snare for Windows log normalization"""
         self.aS(str("""<13>Aug 31 15:46:47 a-zA-Z0-9_ MSWinEventLog	1	System	287	ven. août 26 16:45:45	201	4	Virtual Disk Service	Constantin	N/A	Information	a-zA-Z0-9_	None	Le service s’est arrêté.	119 """),
-                {
-                 'criticality': '1',
+                {'criticality': '1',
                  'eventlog_source': 'System',
                  'snare_event_counter': '287',
                  'eventlog_id': '4',
@@ -621,7 +620,7 @@ class Test(unittest.TestCase):
                  'eventlog_description': str('Le service s’est arrêté.')})
 
         self.aS(str("""<13>Aug 31 15:46:47 a-zA-Z0-9_ MSWinEventLog	0	Security	284	ven. août 26 16:42:01	201	4689	Microsoft-Windows-Security-Auditing	A-ZA-Z0-9_\\clo	N/A	Success Audit	a-zA-Z0-9_	Fin du processus	Un processus est terminé. Sujet : ID de sécurité : S-1-5-21-2423214773-420032381-3839276281-1000 Nom du compte : clo Domaine du compte : A-ZA-Z0-9_ ID d’ouverture de session : 0x21211 Informations sur le processus : ID du processus : 0xb4c Nom du processus : C:\\Windows\\System32\\taskeng.exe État de fin : 0x0	138 """),
-                { 'criticality': '0',
+                {'criticality': '0',
                  'eventlog_source': 'Security',
                  'snare_event_counter': '284',
                  'eventlog_id': '4689',
@@ -638,47 +637,47 @@ class Test(unittest.TestCase):
     def test_vmwareESX4_ESXi4(self):
         """Test VMware ESX 4.x and VMware ESXi 4.x log normalization"""
         self.aS("""[2011-09-05 16:06:30.016 F4CD1B90 verbose 'Locale' opID=996867CC-000002A6] Default resource used for 'host.SystemIdentificationInfo.IdentifierType.ServiceTag.summary' expected in module 'enum'.""",
-            {'date': datetime(2011, 9, 5, 16, 6, 30),
-             'numeric': 'F4CD1B90',
-             'level': 'verbose',
-             'alpha': 'Locale',
-             'body': 'Default resource used for \'host.SystemIdentificationInfo.IdentifierType.ServiceTag.summary\' expected in module \'enum\'.'})
+                {'date': datetime(2011, 9, 5, 16, 6, 30),
+                 'numeric': 'F4CD1B90',
+                 'level': 'verbose',
+                 'alpha': 'Locale',
+                 'body': 'Default resource used for \'host.SystemIdentificationInfo.IdentifierType.ServiceTag.summary\' expected in module \'enum\'.'})
 
         self.aS("""sysboot: Executing 'kill -TERM 314'""",
-            {'body': 'Executing \'kill -TERM 314\''})
+                {'body': 'Executing \'kill -TERM 314\''})
 
     def test_IIS(self):
         """Test IIS log normalization"""
         self.aS("""172.16.255.255, anonymous, 03/20/01, 23:58:11, MSFTPSVC, SALES1, 172.16.255.255, 60, 275, 0, 0, 0, PASS, /Intro.htm, -,""",
-            {'source_ip': '172.16.255.255',
-             'user': 'anonymous',
-             'date': datetime(2001, 3, 20, 23, 58, 11),
-             'service': 'MSFTPSVC',
-             'dest_host': 'SALES1',
-             'dest_ip': '172.16.255.255',
-             'time_taken': 0.06,
-             'sent_bytes_number': '275',
-             'returned_bytes_number': '0',
-             'status': '0',
-             'windows_status_code': '0',
-             'method': 'PASS',
-             'url_path': '/Intro.htm',
-             'script_parameters': '-'})
+                {'source_ip': '172.16.255.255',
+                 'user': 'anonymous',
+                 'date': datetime(2001, 3, 20, 23, 58, 11),
+                 'service': 'MSFTPSVC',
+                 'dest_host': 'SALES1',
+                 'dest_ip': '172.16.255.255',
+                 'time_taken': 0.06,
+                 'sent_bytes_number': '275',
+                 'returned_bytes_number': '0',
+                 'status': '0',
+                 'windows_status_code': '0',
+                 'method': 'PASS',
+                 'url_path': '/Intro.htm',
+                 'script_parameters': '-'})
 
         self.aS("""2011-09-26 13:57:48 W3SVC1 127.0.0.1 GET /tapage.asp - 80 - 127.0.0.1 Mozilla/4.0+(compatible;MSIE+6.0;+windows+NT5.2;+SV1;+.NET+CLR+1.1.4322) 404 0 2""",
-            {'date': datetime(2011, 9, 26, 13, 57, 48),
-            'service': 'W3SVC1',
-            'dest_ip': '127.0.0.1',
-            'method': 'GET',
-            'url_path': '/tapage.asp',
-            'query': '-',
-            'port': '80',
-            'user': '-',
-            'source_ip': '127.0.0.1',
-            'useragent': 'Mozilla/4.0+(compatible;MSIE+6.0;+windows+NT5.2;+SV1;+.NET+CLR+1.1.4322)',
-            'status': '404',
-            'substatus': '0',
-            'win_status': '2'})
+                {'date': datetime(2011, 9, 26, 13, 57, 48),
+                 'service': 'W3SVC1',
+                 'dest_ip': '127.0.0.1',
+                 'method': 'GET',
+                 'url_path': '/tapage.asp',
+                 'query': '-',
+                 'port': '80',
+                 'user': '-',
+                 'source_ip': '127.0.0.1',
+                 'useragent': 'Mozilla/4.0+(compatible;MSIE+6.0;+windows+NT5.2;+SV1;+.NET+CLR+1.1.4322)',
+                 'status': '404',
+                 'substatus': '0',
+                 'win_status': '2'})
 
     def test_fail2ban(self):
         """Test fail2ban ssh banishment logs"""
@@ -686,14 +685,14 @@ class Test(unittest.TestCase):
                 {'program': 'fail2ban',
                  'component': 'filter',
                  'body': "Log rotation detected for /var/log/auth.log",
-                 'date' : datetime(2011,9,25,5,9,2).replace(microsecond = 371000)})
+                 'date' : datetime(2011, 9, 25, 5, 9, 2).replace(microsecond=371000)})
         self.aS("""2011-09-25 21:59:24,304 fail2ban.actions: WARNING [ssh] Ban 219.117.199.6""",
                 {'program': 'fail2ban',
                  'component': 'actions',
                  'action': "Ban",
                  'protocol': "ssh",
                  'source_ip': "219.117.199.6",
-                 'date' : datetime(2011,9,25,21,59,24).replace(microsecond = 304000)})
+                 'date' : datetime(2011, 9, 25, 21, 59, 24).replace(microsecond=304000)})
                  
     def test_bitdefender(self):
         """Test bitdefender spam.log (Mail Server for UNIX version)"""
@@ -708,24 +707,24 @@ class Test(unittest.TestCase):
         self.aS('10/24/2011 04:31:39 BDSCAND ERROR: failed to initialize the AV core',
                 {'program': 'bitdefender',
                  'body': 'failed to initialize the AV core',
-                 'date' : datetime(2011,10,24,0o4,31,39)})
+                 'date' : datetime(2011, 10, 24, 0o4, 31, 39)})
 
     def test_simple_wabauth(self):
         """Test syslog logs"""
         now = datetime.now()
         self.aS("Jan 01 00:00:22 wab2 WAB(CORE)[18190]: type='session closed' username='admin' secondary='root@debian32' client_ip='10.10.4.25' src_protocol='SFTP_SESSION' dst_protocol='SFTP_SESSION' message=''",
-                { 'account': 'root',
-                  'client_ip': '10.10.4.25',
-                  'date': datetime(now.year, 1, 1, 0, 0, 22),
-                  'dest_proto': 'SFTP_SESSION',
-                  'message': '',
-                  'pid': '18190',
-                  'program': 'WAB(CORE)',
-                  'resource': 'debian32',
-                  'source': 'wab2',
-                  'source_proto': 'SFTP_SESSION',
-                  'type': 'session closed',
-                  'username': 'admin'})
+                {'account': 'root',
+                 'client_ip': '10.10.4.25',
+                 'date': datetime(now.year, 1, 1, 0, 0, 22),
+                 'dest_proto': 'SFTP_SESSION',
+                 'message': '',
+                 'pid': '18190',
+                 'program': 'WAB(CORE)',
+                 'resource': 'debian32',
+                 'source': 'wab2',
+                 'source_proto': 'SFTP_SESSION',
+                 'type': 'session closed',
+                 'username': 'admin'})
 
         self.aS("Jan 01 00:00:22 wab2 WAB(CORE)[18190]: type='primary_authentication' timestamp='2011-12-20 17:19:35.621952' username='admin' client_ip='10.10.4.25' diagnostic='SUCCESS'",
                 {'client_ip': '10.10.4.25',
@@ -738,18 +737,18 @@ class Test(unittest.TestCase):
                  'username': 'admin'})
 
         self.aS("Jan 01 00:00:22 wab2 WAB(CORE)[18190]: type='session opened' username='admin' secondary='root@debian32' client_ip='10.10.4.25' src_protocol='SFTP_SESSION' dst_protocol='SFTP_SESSION' message=''",
-                { 'account': 'root',
-                  'client_ip': '10.10.4.25',
-                  'date': datetime(now.year, 1, 1, 0, 0, 22),
-                  'dest_proto': 'SFTP_SESSION',
-                  'message': '',
-                  'pid': '18190',
-                  'program': 'WAB(CORE)',
-                  'resource': 'debian32',
-                  'source': 'wab2',
-                  'source_proto': 'SFTP_SESSION',
-                  'type': 'session opened',
-                  'username': 'admin'})
+                {'account': 'root',
+                 'client_ip': '10.10.4.25',
+                 'date': datetime(now.year, 1, 1, 0, 0, 22),
+                 'dest_proto': 'SFTP_SESSION',
+                 'message': '',
+                 'pid': '18190',
+                 'program': 'WAB(CORE)',
+                 'resource': 'debian32',
+                 'source': 'wab2',
+                 'source_proto': 'SFTP_SESSION',
+                 'type': 'session opened',
+                 'username': 'admin'})
 
     def test_xferlog(self):
         """Testing xferlog formatted logs"""
@@ -774,7 +773,7 @@ class Test(unittest.TestCase):
                  'service_name': 'ftp',
                  'authenticated_user_id': '*',
                  'program': 'ftpd',
-                 'date' : datetime(2004,9,2,9,52),})
+                 'date': datetime(2004, 9, 2, 9, 52), })
         self.aS("Tue Dec 27 11:24:23 2011 1 127.0.0.1 711074 /home/mhu/Documents/Brooks,_Max_-_World_War_Z.mobi b _ o r mhu ftp 0 * c",
                 {'transfer_time': '1',
                  'source_ip': '127.0.0.1',
@@ -796,7 +795,7 @@ class Test(unittest.TestCase):
                  'service_name': 'ftp',
                  'authenticated_user_id': '*',
                  'program': 'ftpd',
-                 'date' : datetime(2011,12,27,11,24,23),}) 
+                 'date' : datetime(2011, 12, 27, 11, 24, 23), })
  
     def test_dansguardian(self):
         """Testing dansguardian logs"""
@@ -808,14 +807,14 @@ class Test(unittest.TestCase):
                  'actions': "*EXCEPTION*",
                  'action': 'EXCEPTION',
                  'reason': "Site interdit trouv&ecute;.",
-                 "method" : "POST",
-                 "len" : "491",
-                 "naughtiness" : "0",
-                 "filter_group_number" : "2",
-                 "status" : "200",
-                 "mime_type" : "-",
-                 "filter_group_name" : "limited_access",
-                 'date' : datetime(2011,12,13,10,41,28),})
+                 "method": "POST",
+                 "len": "491",
+                 "naughtiness": "0",
+                 "filter_group_number": "2",
+                 "status": "200",
+                 "mime_type": "-",
+                 "filter_group_name": "limited_access",
+                 'date': datetime(2011, 12, 13, 10, 41, 28), })
 
     def test_deny_event(self):
         """Testing denyAll event logs"""
@@ -840,135 +839,145 @@ class Test(unittest.TestCase):
                  'source_ip': '127.0.0.1',
                  'user': 'superadmin'})
         self.aS("""1,2011-01-20 15:09:38.130965,2011-01-20 15:09:38.130965,,,::1,,,2,2,5,0,rWeb started.,,,,,,,,,,,,,,,,,,,,,,,,""",
-               {'alert_id': '0',
-                'alert_subtype': 'Device Operations',
-                'alert_subtype_id': '2',
-                'alert_type': 'System',
-                'alert_type_id': '2',
-                'alert_value': 'rWeb started.',
-                'body': '1,2011-01-20 15:09:38.130965,2011-01-20 15:09:38.130965,,,::1,,,2,2,5,0,rWeb started.,,,,,,,,,,,,,,,,,,,,,,,,',
-                'date': datetime(2011, 1, 20, 15, 9, 38),
-                'end_date': '2011-01-20 15:09:38.130965',
-                'event': 'rWeb started',
-                'event_uid': '1',
-                'ip_device': '::1',
-                'raw': '1,2011-01-20 15:09:38.130965,2011-01-20 15:09:38.130965,,,::1,,,2,2,5,0,rWeb started.,,,,,,,,,,,,,,,,,,,,,,,,',
-                'severity': 'Notice',
-                'severity_code': '5'} )
+                {'alert_id': '0',
+                 'alert_subtype': 'Device Operations',
+                 'alert_subtype_id': '2',
+                 'alert_type': 'System',
+                 'alert_type_id': '2',
+                 'alert_value': 'rWeb started.',
+                 'body': '1,2011-01-20 15:09:38.130965,2011-01-20 15:09:38.130965,,,::1,,,2,2,5,0,rWeb started.,,,,,,,,,,,,,,,,,,,,,,,,',
+                 'date': datetime(2011, 1, 20, 15, 9, 38),
+                 'end_date': '2011-01-20 15:09:38.130965',
+                 'event': 'rWeb started',
+                 'event_uid': '1',
+                 'ip_device': '::1',
+                 'raw': '1,2011-01-20 15:09:38.130965,2011-01-20 15:09:38.130965,,,::1,,,2,2,5,0,rWeb started.,,,,,,,,,,,,,,,,,,,,,,,,',
+                 'severity': 'Notice',
+                 'severity_code': '5'})
 
     def test_cisco_asa(self):
         """Testing CISCO ASA logs"""
         self.aS("""<168>Mar 05 2010 11:06:12 ciscoasa : %ASA-6-305011: Built dynamic TCP translation from 14net:14.36.103.220/300 to 172net:172.18.254.146/55""",
-               {'program': 'cisco-asa',
-                'severity_code': '6',
-                'event_id': '305011',
-                'date': datetime(2010, 3, 5, 11, 6, 12),
-                'taxonomy': 'firewall',
-                'outbound_int': '172net',
-                'dest_port': '55'})
+                {'program': 'cisco-asa',
+                 'severity_code': '6',
+                 'event_id': '305011',
+                 'date': datetime(2010, 3, 5, 11, 6, 12),
+                 'taxonomy': 'firewall',
+                 'outbound_int': '172net',
+                 'dest_port': '55'})
         self.aS("""<168>Jul 02 2006 07:33:45 ciscoasa : %ASA-6-302013: Built outbound TCP connection 8300517 for outside:64.156.4.191/110 (64.156.4.191/110) to inside:192.168.8.12/3109 (xxx.xxx.185.142/11310)""",
-               {'program': 'cisco-asa',
-                'severity_code': '6',
-                'event_id': '302013',
-                'date': datetime(2006, 7, 2, 7, 33, 45),
-                'taxonomy': 'firewall',
-                'outbound_int': 'inside',
-                'dest_ip': '192.168.8.12'})
+                {'program': 'cisco-asa',
+                 'severity_code': '6',
+                 'event_id': '302013',
+                 'date': datetime(2006, 7, 2, 7, 33, 45),
+                 'taxonomy': 'firewall',
+                 'outbound_int': 'inside',
+                 'dest_ip': '192.168.8.12'})
 
     def test_openLDAP(self):
         """Testing openLDAP logs"""
         self.aS("""Jun 12 11:18:47 openLDAP slapd[870]: conn=1007 op=0 RESULT tag=97 err=53 text=unauthenticated bind (DN with no password) disallowed""",
-               {'program': 'slapd',
-                'source': 'openLDAP',
-                'connection_id': '1007',
-                'operation_id': '0',
-                'action': 'RESULT',
-                'tag_code': '97',
-                'error_code': '53',
-                'response_type': 'Bind',
-                'status': 'Service error - unwilling to perform',
-                'reason': 'unauthenticated bind (DN with no password) disallowed',
-                })
+                {'program': 'slapd',
+                 'source': 'openLDAP',
+                 'connection_id': '1007',
+                 'operation_id': '0',
+                 'action': 'RESULT',
+                 'tag_code': '97',
+                 'error_code': '53',
+                 'response_type': 'Bind',
+                 'status': 'Service error - unwilling to perform',
+                 'reason': 'unauthenticated bind (DN with no password) disallowed',
+                 })
         self.aS('Jun 12 11:14:20 openLDAP slapd[870]: conn=1002 op=0 SRCH base="" scope=0 deref=0 filter="(objectClass=*)"',
-               {'program': 'slapd',
-                'source': 'openLDAP',
-                'connection_id': '1002',
-                'operation_id': '0',
-                'action': 'SRCH',
-                'deref': '0',
-                'scope_code': '0',
-                'scope': 'base',
-                'filter': '(objectClass=*)',
-                })
+                {'program': 'slapd',
+                 'source': 'openLDAP',
+                 'connection_id': '1002',
+                 'operation_id': '0',
+                 'action': 'SRCH',
+                 'deref': '0',
+                 'scope_code': '0',
+                 'scope': 'base',
+                 'filter': '(objectClass=*)',
+                 })
         self.aS('Jun 11 15:52:37 openLDAP slapd[1814]: conn=1012 fd=14 ACCEPT from IP=10.10.4.7:39450 (IP=10.10.4.250:389)',
-               {'program': 'slapd',
-                'source': 'openLDAP',
-                'connection_id': '1012',
-                'socket_id': '14',
-                'action': 'ACCEPT',
-                'source_ip': '10.10.4.7',
-                'source_port': '39450',
-                'local_ip': '10.10.4.250',
-                'local_port': '389',
-                })
+                {'program': 'slapd',
+                 'source': 'openLDAP',
+                 'connection_id': '1012',
+                 'socket_id': '14',
+                 'action': 'ACCEPT',
+                 'source_ip': '10.10.4.7',
+                 'source_port': '39450',
+                 'local_ip': '10.10.4.250',
+                 'local_port': '389',
+                 })
 
     def test_eventlogW3EN(self):
         """Testing Win2003 security audit logs (english)"""
         self.aS("""<13>Nov 21 16:28:40 w2003en MSWinEventLog	0\tSecurity\t129\tWed Nov 21 16:28:40\t2012\t592\tSecurity\tSYSTEM\tUser\tSuccess Audit\tW2003EN\tDetailed Tracking\tA new process has been created:     New Process ID: 1536     Image File Name: C:\WINDOWS\system32\wpabaln.exe     Creator Process ID: 540     User Name: W2003EN$     Domain: WORKGROUP     Logon ID: (0x0,0x3E7)\t99""",
-               {
-                 'criticality': '0',
-                 'eventlog_id': '592',
-                 'eventlog_source': 'Security',
-                 'eventlog_name': 'Security',
-                 'source_host': 'W2003EN',
-                 'eventlog_type': 'Success Audit',
-                 'program': 'EventLog',
-                 'md5_checksum': '99',
-                 'eventlog_description': """A new process has been created:     New Process ID: 1536     Image File Name: C:\WINDOWS\system32\wpabaln.exe     Creator Process ID: 540     User Name: W2003EN$     Domain: WORKGROUP     Logon ID: (0x0,0x3E7)""",
-                 "file_name" : "C:\WINDOWS\system32\wpabaln.exe",
-                 "user" : "W2003EN$",
-                 "domain" : "WORKGROUP",
-                 "logon_id" : "(0x0,0x3E7)",
-                 "pid" : "1536",})         
+                {
+                  'criticality': '0',
+                  'eventlog_id': '592',
+                  'eventlog_source': 'Security',
+                  'eventlog_name': 'Security',
+                  'source_host': 'W2003EN',
+                  'eventlog_type': 'Success Audit',
+                  'program': 'EventLog',
+                  'md5_checksum': '99',
+                  'eventlog_description': """A new process has been created:     New Process ID: 1536     Image File Name: C:\WINDOWS\system32\wpabaln.exe     Creator Process ID: 540     User Name: W2003EN$     Domain: WORKGROUP     Logon ID: (0x0,0x3E7)""",
+                  "file_name": "C:\WINDOWS\system32\wpabaln.exe",
+                  "user": "W2003EN$",
+                  "domain": "WORKGROUP",
+                  "logon_id": "(0x0,0x3E7)",
+                  "pid": "1536", })
 
         self.aS("""<13>Nov 21 17:45:05 w2003en MSWinEventLog 1\tSecurity\t233\tWed Nov 21 17:44:59\t2012\t529\tSecurity\tSYSTEM\tUser\tFailure Audit\tW2003EN\tLogon/Logoff\tLogon Failure:     Reason: Unknown user name or bad password     User Name: Administrator     Domain: W2003EN     Logon Type: 2     Logon Process: User32       Authentication Package: Negotiate     Workstation Name: W2003EN     Caller User Name: W2003EN$     Caller Domain: WORKGROUP     Caller Logon ID: (0x0,0x3E7)     Caller Process ID: 484     Transited Services: -     Source Network Address: 127.0.0.1     Source Port: 0\t206""", 
-               {'criticality': '1',
-                 'eventlog_id': '529',
-                 'eventlog_source': 'Security',
-                 'eventlog_name': 'Security',
-                 'source_host': 'W2003EN',
-                 'eventlog_type': 'Failure Audit',
-                 'program': 'EventLog',
-                 'md5_checksum': '206',
-                 "user" : "Administrator",
-                 "domain" : "W2003EN",
-                 "logon_type" : "2",
-                 "method" : "Interactive",
-                 "authentication_package" : 'Negotiate',
-                 "dest_host" : "W2003EN",
-                 "caller" : "W2003EN$",
-                 "caller_domain" : "WORKGROUP",
-                 "caller_logon_id" : "(0x0,0x3E7)",
-                 "status" : "failure",
-                 "reason" : "Unknown user name or bad password",
-                 "source_ip" : "127.0.0.1",
-                 "source_port" : "0",
-                 'eventlog_description': """Logon Failure:     Reason: Unknown user name or bad password     User Name: Administrator     Domain: W2003EN     Logon Type: 2     Logon Process: User32       Authentication Package: Negotiate     Workstation Name: W2003EN     Caller User Name: W2003EN$     Caller Domain: WORKGROUP     Caller Logon ID: (0x0,0x3E7)     Caller Process ID: 484     Transited Services: -     Source Network Address: 127.0.0.1     Source Port: 0""", })  
+                {'criticality': '1',
+                  'eventlog_id': '529',
+                  'eventlog_source': 'Security',
+                  'eventlog_name': 'Security',
+                  'source_host': 'W2003EN',
+                  'eventlog_type': 'Failure Audit',
+                  'program': 'EventLog',
+                  'md5_checksum': '206',
+                  "user": "Administrator",
+                  "domain": "W2003EN",
+                  "logon_type": "2",
+                  "method": "Interactive",
+                  "authentication_package" : 'Negotiate',
+                  "dest_host": "W2003EN",
+                  "caller": "W2003EN$",
+                  "caller_domain": "WORKGROUP",
+                  "caller_logon_id": "(0x0,0x3E7)",
+                  "status": "failure",
+                  "reason": "Unknown user name or bad password",
+                  "source_ip": "127.0.0.1",
+                  "source_port": "0",
+                  'eventlog_description': """Logon Failure:     Reason: Unknown user name or bad password     User Name: Administrator     Domain: W2003EN     Logon Type: 2     Logon Process: User32       Authentication Package: Negotiate     Workstation Name: W2003EN     Caller User Name: W2003EN$     Caller Domain: WORKGROUP     Caller Logon ID: (0x0,0x3E7)     Caller Process ID: 484     Transited Services: -     Source Network Address: 127.0.0.1     Source Port: 0""", })
 
         self.aS("""<13>Nov 21 17:45:25 w2003en MSWinEventLog	1\tSecurity\t237\tWed Nov 21 17:45:25\t2012\t576\tSecurity\tAdministrator\tUser\tSuccess Audit\tW2003EN\tPrivilege Use\tSpecial privileges assigned to new logon:     User Name: Administrator     Domain: W2003EN     Logon ID: (0x0,0x3A092)     Privileges: SeSecurityPrivilege   SeBackupPrivilege   SeRestorePrivilege   SeTakeOwnershipPrivilege   SeDebugPrivilege   SeSystemEnvironmentPrivilege   SeLoadDriverPrivilege   SeImpersonatePrivilege\t210""", 
-               {'criticality': '1',
-                 'eventlog_id': '576',
-                 'eventlog_source': 'Security',
-                 'eventlog_name': 'Security',
-                 'source_host': 'W2003EN',
-                 'eventlog_type': 'Success Audit',
-                 'program': 'EventLog',
-                 'md5_checksum': '210',
-                 "user" : "Administrator",
-                 "domain" : "W2003EN",
-                 "logon_id" : "(0x0,0x3A092)",
-                 "privileges" : "SeSecurityPrivilege   SeBackupPrivilege   SeRestorePrivilege   SeTakeOwnershipPrivilege   SeDebugPrivilege   SeSystemEnvironmentPrivilege   SeLoadDriverPrivilege   SeImpersonatePrivilege",
-                 'eventlog_description': """Special privileges assigned to new logon:     User Name: Administrator     Domain: W2003EN     Logon ID: (0x0,0x3A092)     Privileges: SeSecurityPrivilege   SeBackupPrivilege   SeRestorePrivilege   SeTakeOwnershipPrivilege   SeDebugPrivilege   SeSystemEnvironmentPrivilege   SeLoadDriverPrivilege   SeImpersonatePrivilege""", })  
+                {'criticality': '1',
+                  'eventlog_id': '576',
+                  'eventlog_source': 'Security',
+                  'eventlog_name': 'Security',
+                  'source_host': 'W2003EN',
+                  'eventlog_type': 'Success Audit',
+                  'program': 'EventLog',
+                  'md5_checksum': '210',
+                  "user": "Administrator",
+                  "domain": "W2003EN",
+                  "logon_id": "(0x0,0x3A092)",
+                  "privileges": "SeSecurityPrivilege   SeBackupPrivilege   SeRestorePrivilege   SeTakeOwnershipPrivilege   SeDebugPrivilege   SeSystemEnvironmentPrivilege   SeLoadDriverPrivilege   SeImpersonatePrivilege",
+                  'eventlog_description': """Special privileges assigned to new logon:     User Name: Administrator     Domain: W2003EN     Logon ID: (0x0,0x3A092)     Privileges: SeSecurityPrivilege   SeBackupPrivilege   SeRestorePrivilege   SeTakeOwnershipPrivilege   SeDebugPrivilege   SeSystemEnvironmentPrivilege   SeLoadDriverPrivilege   SeImpersonatePrivilege""", })
+
+    def test_json_message(self):
+        """Testing JSON generic message (english)"""
+        self.aS("""{"timestamp": "2020-03-23T20:50:21.850115Z", "level": "WARNING", "name": "testing.webdriver", "message": "Finished Request"}""",
+                {'timestamp': '2020-03-23T20:50:21.850115Z',
+                 'date': datetime(2020, 3, 23, 20, 50, 21, 850115),
+                 'log_level': 'WARNING',
+                 'name': 'testing.webdriver',
+                 'message': 'Finished Request',
+                 'log_level_num': 30})
 
 
 if __name__ == "__main__":

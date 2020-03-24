@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- pylogparser - Logs parsers python library                  -->
+<!-- Copyright (C) 2011 Wallix Inc.                             -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!--                                                            -->
+<!-- This package is free software; you can redistribute        -->
+<!-- it and/or modify it under the terms of the GNU Lesser      -->
+<!-- General Public License as published by the Free Software   -->
+<!-- Foundation; either version 2.1 of the License, or (at      -->
+<!-- your option) any later version.                            -->
+<!--                                                            -->
+<!-- This package is distributed in the hope that it will be    -->
+<!-- useful, but WITHOUT ANY WARRANTY; without even the implied -->
+<!-- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR    -->
+<!-- PURPOSE.  See the GNU Lesser General Public License for    -->
+<!-- more details.                                              -->
+<!--                                                            -->
+<!-- You should have received a copy of the GNU Lesser General  -->
+<!-- Public License along with this package; if not, write      -->
+<!-- to the Free Software Foundation, Inc., 59 Temple Place,    -->
+<!-- Suite 330, Boston, MA  02111-1307  USA                     -->
+<!--                                                            -->
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+<!DOCTYPE normalizer SYSTEM "normalizer.dtd">
+<normalizer name="json_generic"
+            version="1.0"
+            unicode="yes"
+            ignorecase="yes"
+            matchtype="match"
+            appliedTo="raw"
+            taxonomy="logging">
+    <description>
+        <localized_desc language="en"></localized_desc>
+        <localized_desc language="fr"></localized_desc>
+    </description>
+    <authors>
+        <author>rdevost@hylamobile.com</author>
+    </authors>
+    <tagTypes>
+        <tagType name="timestamp" type="datetime">
+            <description>
+                <localized_desc language="en"></localized_desc>
+                <localized_desc language="fr"></localized_desc>
+            </description>
+            <regexp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[.]\d{6}Z</regexp>
+        </tagType>
+    </tagTypes>
+    <callbacks>
+        <callback name="encode_level">
+LEVELS = {
+"CRITICAL": 50,
+"ERROR": 40,
+"WARNING" : 30,
+"WARN" : 30,
+"INFO" : 20,
+"DEBUG" : 10,
+"NOTSET" : 0
+}
+log['log_level_num'] = LEVELS.get(value, 9)
+        </callback>
+    </callbacks>
+    <patterns>
+        <pattern name="json_generic-001">
+            <description>
+                <localized_desc language="en"></localized_desc>
+                <localized_desc language="fr"></localized_desc>
+            </description>
+            <text type="json">timestamp name level message</text>
+            <tags>
+                <tag name="timestamp" tagType="timestamp">
+                    <description>
+                        <localized_desc language="en"></localized_desc>
+                        <localized_desc language="fr"></localized_desc>
+                    </description>
+                    <substitute>timestamp</substitute>
+                    <callbacks>
+                        <callback>ISO8601_6dec</callback>
+                    </callbacks>
+                </tag>
+                <tag name="log_level" tagType="Anything">
+                    <description>
+                        <localized_desc language="en"></localized_desc>
+                        <localized_desc language="fr"></localized_desc>
+                    </description>
+                    <substitute>level</substitute>
+                    <callbacks>
+                        <callback>encode_level</callback>
+                    </callbacks>
+                </tag>
+                <tag name="name" tagType="Anything">
+                    <description>
+                        <localized_desc language="en"></localized_desc>
+                        <localized_desc language="fr"></localized_desc>
+                    </description>
+                    <substitute>name</substitute>
+                    <callbacks>
+                        <callback></callback>
+                    </callbacks>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>{"timestamp": "2020-03-23T20:50:21.850115Z", "level": "WARNING", "name": "testing.webdriver", "message": "Finished Request"}</text>
+                     <expectedTags>
+                          <expectedTag name="WARNING">DEBUG</expectedTag>
+                          <expectedTag name="name">primer.get_code</expectedTag>
+                          <expectedTag name="message">Read code for list</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+    </patterns>
+</normalizer>

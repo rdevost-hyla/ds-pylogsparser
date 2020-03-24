@@ -29,6 +29,7 @@ by the Normalizer class.
 
 import re
 import csv
+import json
 import warnings
 import math
 
@@ -216,6 +217,7 @@ class Pattern(object):
 
 class CSVPattern(object):
     """A pattern that handle CSV case."""
+
     def __init__(self,
                  name,
                  pattern,
@@ -338,10 +340,10 @@ class CSVPattern(object):
             if data:
                 data.update(self.commonTags)
         return data
-        
+
     def test_examples(self):
         raise NotImplementedError
-        
+
     def get_description(self, language='en'):
         tags_desc = dict([(tag.name, tag.get_description(language))
                           for tag in list(self.tags.values())])
@@ -352,7 +354,134 @@ class CSVPattern(object):
                 'tags': tags_desc,
                 'substitutes': substitutes,
                 'commonTags': self.commonTags,
-                'examples': examples_desc }
+                'examples': examples_desc}
+
+
+class JSONPattern(object):
+    """A pattern that handle JSON case."""
+
+    def __init__(self,
+                 name,
+                 pattern,
+                 tags=None,
+                 callBacks=None,
+                 tagTypes=None,
+                 genericTagTypes=None,
+                 genericCallBacks=None,
+                 description=None,
+                 commonTags=None,
+                 examples=None):
+        """
+        @param name: the pattern name
+        @param pattern: the CSV pattern
+        @param tags: a dict of L{Tag} instance with Tag name as key
+        @param callBacks: a list of L{CallbackFunction}
+        @param tagTypes: a dict of L{TagType} instance with TagType name as key
+        @param genericTagTypes: a dict of L{TagType} instance from common_tags xml definition with TagType name as key
+        @param genericCallBacks: a dict of L{CallBacks} instance from common_callbacks xml definition with callback name as key
+        @param description: a pattern description
+        @param commonTags: a Dict of tags to add to the final normalisation
+        @param examples: a list of L{PatternExample}
+        """
+        self.name = name
+        self.pattern = pattern
+        self.tags = tags
+        self.callBacks = callBacks if callBacks else []
+        self.tagTypes = tagTypes if tagTypes else {}
+        self.genericTagTypes = genericTagTypes if genericTagTypes else {}
+        self.genericCallBacks = genericCallBacks if genericCallBacks else {}
+        self.description = description if description else {}
+        self.examples = examples if examples else []
+        self.commonTags = commonTags if commonTags else {}
+        _fields = self.pattern.split()
+        self.fields = [f.strip() for f in _fields]
+
+    def postprocess(self, data):
+        for tag in self.tags:
+            # tagTypes defined in the conf file take precedence on the
+            # generic ones. If nothing found either way, fall back to
+            # Anything.
+            tag_regexp = self.tagTypes.get(
+                self.tags[tag].tagtype,
+                self.genericTagTypes.get(
+                    self.tags[tag].tagtype, self.genericTagTypes['Anything'])).regexp
+            r = re.compile(tag_regexp)
+            field = self.tags[tag].substitute
+            if field not in list(data.keys()):
+                continue
+            if not r.match(data[field]):
+                # We found a tag that not matchs the expected regexp
+                return None
+            else:
+                value = data[field]
+                del data[field]
+                data[tag] = value
+                # try to apply callbacks
+                # but do not try to apply callbacks if we do not have any value
+                if not data[tag]:
+                    continue
+                callbacks_names = self.tags[tag].callbacks
+                for cbname in callbacks_names:
+                    try:
+                        # get the callback in the definition file,
+                        # or look it up in the common library if not found
+                        callback = ([cb for cb in list(self.callBacks.values())
+                                     if cb.name == cbname] or
+                                    [cb for cb in list(self.genericCallBacks.values())
+                                     if cb.name == cbname])
+                        callback = callback[0]
+                    except:
+                        warnings.warn("Unable to find callback %s for pattern %s" %
+                                      (cbname, self.name))
+                        continue
+                    try:
+                        callback(data[tag], data)
+                    except Exception as e:
+                        raise Exception("Error on callback %s in pattern %s : %s - skipping" %
+                                        (cbname, self.name, e))
+        # remove temporary tags
+        temp_tags = [t for t in list(data.keys()) if t.startswith('__')]
+        for t in temp_tags:
+            del data[t]
+        empty_tags = [t for t in list(data.keys()) if not data[t]]
+        # remove empty tags
+        for t in empty_tags:
+            del data[t]
+        return data
+
+    def normalize(self, logline):
+        # Verify logline is a str
+        if not isinstance(logline, str):
+            return None
+        # Try to retreive some fields with csv reader
+        try:
+            _data = json.loads(logline)
+        except:
+            return None
+        # Check we have something in data
+        if not _data:
+            return None
+        data = {key: _data.get(key, None) for key in self.fields}
+        data = self.postprocess(data)
+        # Add common tags
+        if data:
+            data.update(self.commonTags)
+        return data
+
+    def test_examples(self):
+        raise NotImplementedError
+
+    def get_description(self, language='en'):
+        tags_desc = dict([(tag.name, tag.get_description(language))
+                          for tag in list(self.tags.values())])
+        substitutes = dict([(tag.substitute, tag.name) for tag in list(self.tags.values())])
+        examples_desc = [example.get_description(language) for example in self.examples]
+        return {'pattern': self.pattern,
+                'description': self.description.get(language, "N/A"),
+                'tags': tags_desc,
+                'substitutes': substitutes,
+                'commonTags': self.commonTags,
+                'examples': examples_desc}
 
 
 class CallbackFunction(object):
@@ -506,6 +635,7 @@ class Normalizer(object):
             p_commonTags = {}
             p_examples = []
             p_csv = {}
+            p_json = {}
             for p_node in pattern:
                 if p_node.tag == 'description':
                     for desc in p_node:
@@ -520,6 +650,8 @@ class Normalizer(object):
                                 p_csv['separator'] = p_node.get('separator')
                             if 'quotechar' in p_node.attrib:
                                 p_csv['quotechar'] = p_node.get('quotechar')
+                        elif p_type == 'json':
+                            p_json = {'type': 'json'}
                 elif p_node.tag == 'tags':
                     for tag in p_node:
                         t_cb = []
@@ -553,14 +685,19 @@ class Normalizer(object):
                                 for etag in child:
                                     e_expectedTags[etag.get('name')] = etag.text
                         p_examples.append(PatternExample(e_rawline, e_expectedTags, e_description))
-            if not p_csv:
+            if not (p_csv or p_json):
                 self.patterns[p_name] = Pattern(
                     p_name, p_pattern, p_tags, p_description, p_commonTags, p_examples)
-            else:
+            elif p_csv:
                 self.patterns[p_name] = CSVPattern(
                     p_name, p_pattern, p_csv['separator'], p_csv['quotechar'], p_tags,
-                    self.callbacks, self.tagTypes, self.genericTagTypes, self.genericCallBacks, p_description,
-                    p_commonTags, p_examples)
+                    self.callbacks, self.tagTypes, self.genericTagTypes, self.genericCallBacks,
+                    p_description, p_commonTags, p_examples)
+            elif p_json:
+                self.patterns[p_name] = JSONPattern(
+                    p_name, p_pattern, p_tags,
+                    self.callbacks, self.tagTypes, self.genericTagTypes, self.genericCallBacks,
+                    p_description, p_commonTags, p_examples)
 
     def get_description(self, language="en"):
         return "%s v. %s" % (self.name, self.version)
@@ -627,11 +764,14 @@ class Normalizer(object):
         if isinstance(log, str) or not hasattr(log, "get"):
             raise ValueError("the normalizer expects an argument of type Dict")
         # Test prerequisites
-        if all([re.match(value, log.get(prereq, ''))
-                for prereq, value in list(self.prerequisites.items())]) or\
-           do_not_check_prereq:
+        # if (self.prerequisites and all([re.match(value, log.get(prereq, ''))
+        if (all([re.match(value, log.get(prereq, '')) for prereq, value in list(
+                self.prerequisites.items())])
+                or do_not_check_prereq):
             csv_patterns = [csv_pattern for csv_pattern in list(self.patterns.values())
                             if isinstance(csv_pattern, CSVPattern)]
+            json_patterns = [json_pattern for json_pattern in list(self.patterns.values())
+                             if isinstance(json_pattern, JSONPattern)]
             if self.appliedTo in list(log.keys()):
                 m = getattr(self.full_regexp, self.matchtype)(log[self.appliedTo])
                 if m is not None:
@@ -679,10 +819,32 @@ class Normalizer(object):
                                 "Cannot apply final callback %s : %r - skipping" % (cb, e))
                 elif csv_patterns:
                     # this little trick makes the following line not type dependent
-                    temp_wl = dict([ (u, log[u]) for u in list(log.keys()) ])
+                    temp_wl = dict([(u, log[u]) for u in list(log.keys())])
                     ret = None
                     for csv_pattern in csv_patterns:
                         ret = csv_pattern.normalize(temp_wl[self.appliedTo])
+                        if ret:
+                            log.update(ret)
+                            # then add the normalizer's common Tags
+                            log.update(self.commonTags)
+                            # then add the taxonomy if relevant
+                            if self.taxonomy:
+                                log['taxonomy'] = self.taxonomy
+                            # and finally, apply the final callbacks
+                            for cb in self.finalCallbacks:
+                                try:
+                                    log.update(self.callbacks.get(
+                                        cb, self.genericCallBacks.get(cb))(None, log))
+                                except Exception as e:
+                                    raise Exception(
+                                        "Cannot apply final callback %s : %r - skipping" % (cb, e))
+                            break
+                elif json_patterns:
+                    # this little trick makes the following line not type dependent
+                    temp_wl = dict([(u, log[u]) for u in list(log.keys())])
+                    ret = None
+                    for json_pattern in json_patterns:
+                        ret = json_pattern.normalize(temp_wl[self.appliedTo])
                         if ret:
                             log.update(ret)
                             # then add the normalizer's common Tags
