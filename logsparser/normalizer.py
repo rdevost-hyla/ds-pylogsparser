@@ -373,8 +373,8 @@ class JSONPattern(object):
                  examples=None):
         """
         @param name: the pattern name
-        @param pattern: the CSV pattern
-        @param tags: a dict of L{Tag} instance with Tag name as key
+        @param pattern: the JSON pattern (space-separated list of fields)
+        @param tags: a dict of L{Tag} instance with Tag name from XML <tag> as key
         @param callBacks: a list of L{CallbackFunction}
         @param tagTypes: a dict of L{TagType} instance with TagType name as key
         @param genericTagTypes: a dict of L{TagType} instance from common_tags xml definition with TagType name as key
@@ -409,36 +409,38 @@ class JSONPattern(object):
             field = self.tags[tag].substitute
             if field not in list(data.keys()):
                 continue
-            if not r.match(data[field]):
-                # We found a tag that not matchs the expected regexp
+            try:
+                if not r.match(data[field]):
+                    # We found a tag that not matchs the expected regexp
+                    return None
+            except TypeError:
                 return None
-            else:
-                value = data[field]
-                del data[field]
-                data[tag] = value
-                # try to apply callbacks
-                # but do not try to apply callbacks if we do not have any value
-                if not data[tag]:
+            value = data[field]
+            del data[field]
+            data[tag] = value
+            # try to apply callbacks
+            # but do not try to apply callbacks if we do not have any value
+            if not data[tag]:
+                continue
+            callbacks_names = self.tags[tag].callbacks
+            for cbname in callbacks_names:
+                try:
+                    # get the callback in the definition file,
+                    # or look it up in the common library if not found
+                    callback = ([cb for cb in list(self.callBacks.values())
+                                 if cb.name == cbname] or
+                                [cb for cb in list(self.genericCallBacks.values())
+                                 if cb.name == cbname])
+                    callback = callback[0]
+                except:
+                    warnings.warn("Unable to find callback %s for pattern %s" %
+                                  (cbname, self.name))
                     continue
-                callbacks_names = self.tags[tag].callbacks
-                for cbname in callbacks_names:
-                    try:
-                        # get the callback in the definition file,
-                        # or look it up in the common library if not found
-                        callback = ([cb for cb in list(self.callBacks.values())
-                                     if cb.name == cbname] or
-                                    [cb for cb in list(self.genericCallBacks.values())
-                                     if cb.name == cbname])
-                        callback = callback[0]
-                    except:
-                        warnings.warn("Unable to find callback %s for pattern %s" %
-                                      (cbname, self.name))
-                        continue
-                    try:
-                        callback(data[tag], data)
-                    except Exception as e:
-                        raise Exception("Error on callback %s in pattern %s : %s - skipping" %
-                                        (cbname, self.name, e))
+                try:
+                    callback(data[tag], data)
+                except Exception as e:
+                    raise Exception("Error on callback %s in pattern %s : %s - skipping" %
+                                    (cbname, self.name, e))
         # remove temporary tags
         temp_tags = [t for t in list(data.keys()) if t.startswith('__')]
         for t in temp_tags:
@@ -455,7 +457,7 @@ class JSONPattern(object):
             return None
         # Try to retreive some fields with csv reader
         try:
-            _data = json.loads(logline)
+            _data = json.loads(logline, strict=False)
         except:
             return None
         # Check we have something in data
@@ -778,7 +780,7 @@ class Normalizer(object):
                     m = m.groupdict()
                 if m:
                     # this little trick makes the following line not type dependent
-                    temp_wl = dict([ (u, log[u]) for u in list(log.keys()) ])
+                    temp_wl = dict([(u, log[u]) for u in list(log.keys())])
                     for tag in m:
                         if m[tag] is not None:
                             matched_pattern = self.patterns[self.tags_to_pattern[tag]]

@@ -296,8 +296,30 @@ T(?P&lt;hour&gt;\d{2}):
 (?:(?P&lt;second&gt;\d{2})
 (?:\.(?P&lt;microsecond&gt;\d{6}))?)?Z""", re.VERBOSE)
 m = r.match(value).groupdict()
-m = dict( [ (u, v and int(v) or 0) for u,v in m.items() ] )
-#m['microsecond'] = m['microsecond'] * 1000
+m = dict([(u, v and int(v) or 0) for u,v in m.items()])
+log['date'] = datetime(**m)
+	    </code>
+	</callback>
+	<callback name="ISO8601_9dec">
+	    <description>
+	        <localized_desc language="en">
+Converts a combined date and time in UTC expressed according to the ISO 8601
+standard (with 9 decimals). Also commonly referred to as "Zulu Time".
+Precision can be up to the millisecond.
+            </localized_desc>
+	    </description>
+	    <code>
+r = re.compile("""
+(?P&lt;year&gt;\d{4})-
+(?P&lt;month&gt;\d{2})-
+(?P&lt;day&gt;\d{2})
+T(?P&lt;hour&gt;\d{2}):
+(?P&lt;minute&gt;\d{2}):
+(?:(?P&lt;second&gt;\d{2})
+(?:\.(?P&lt;microsecond&gt;\d{9}))?)?Z""", re.VERBOSE)
+m = r.match(value).groupdict()
+m = dict([(u, v and int(v) or 0) for u,v in m.items()])
+m['microsecond'] = int(round(m['microsecond']/1000,0))
 log['date'] = datetime(**m)
 	    </code>
 	</callback>

@@ -979,6 +979,15 @@ class Test(unittest.TestCase):
                  'message': 'Finished Request',
                  'log_level_num': 30})
 
+    def test_json_message_mixed(self):
+        """Testing JSON generic message (english)"""
+        self.aS("""{"log":"[2020-02-27T11:53:05,774][ERROR][logstash.inputs.jdbc     ] Java::ComMicrosoftSqlserverJdbc::SQLServerException: Incorrect syntax near the keyword 'exec'.: SELECT TOP (1) count(*) AS [COUNT] FROM (exec dw.api.TAPCenterPerformance;) AS [T1]\n","stream":"stdout","time":"2020-02-27T16:53:05.775162808Z"}""",
+                {'timestamp': '2020-02-27T16:53:05.775162808Z',
+                 'date': datetime(2020, 2, 27, 16, 53, 5, 775163),
+                 'log': "[2020-02-27T11:53:05,774][ERROR][logstash.inputs.jdbc     ] Java::ComMicrosoftSqlserverJdbc::SQLServerException: Incorrect syntax near the keyword 'exec'.: SELECT TOP (1) count(*) AS [COUNT] FROM (exec dw.api.TAPCenterPerformance;) AS [T1]\n",
+                 'log_level': '[ERROR]',
+                 'log_level_num': 30})
+
 
 if __name__ == "__main__":
     unittest.main()

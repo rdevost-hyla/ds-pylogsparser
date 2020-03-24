@@ -25,7 +25,7 @@
 <!--                                                            -->
 <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 <!DOCTYPE normalizer SYSTEM "normalizer.dtd">
-<normalizer name="json_generic"
+<normalizer name="json_logstash"
             version="1.0"
             unicode="yes"
             ignorecase="yes"
@@ -45,69 +45,65 @@
                 <localized_desc language="en"></localized_desc>
                 <localized_desc language="fr"></localized_desc>
             </description>
-            <regexp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[.]\d{6}Z</regexp>
+            <regexp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[.]\d{9}Z</regexp>
         </tagType>
     </tagTypes>
     <callbacks>
         <callback name="encode_level">
-LEVELS = {
-"CRITICAL": 50,
-"ERROR": 40,
-"WARNING" : 30,
-"WARN" : 30,
-"INFO" : 20,
-"DEBUG" : 10,
-"NOTSET" : 0
-}
-log['log_level_num'] = LEVELS.get(value, 9)
+LEVELS = [
+("[WARN ]", 40),
+("[ERROR]", 30),
+("[INFO ]", 20),
+("[TRACE]", 15),
+("[DEBUG]", 10),
+]
+log_level = ''
+log_level_num = 0
+for (level, level_num) in LEVELS:
+    loc = value.find(level)
+    if loc == -1:
+        continue
+    log_level = level
+    log_level_num = level_num
+    break
+log['log_level'] = log_level
+log['log_level_num'] = log_level_num
         </callback>
     </callbacks>
     <patterns>
-        <pattern name="json_generic-001">
+        <pattern name="json_logstash-001">
             <description>
                 <localized_desc language="en"></localized_desc>
                 <localized_desc language="fr"></localized_desc>
             </description>
-            <text type="json">timestamp name level message</text>
+            <text type="json">time log</text>
             <tags>
                 <tag name="timestamp" tagType="timestamp">
                     <description>
                         <localized_desc language="en"></localized_desc>
                         <localized_desc language="fr"></localized_desc>
                     </description>
-                    <substitute>timestamp</substitute>
+                    <substitute>time</substitute>
                     <callbacks>
-                        <callback>ISO8601_6dec</callback>
+                        <callback>ISO8601_9dec</callback>
                     </callbacks>
                 </tag>
-                <tag name="log_level" tagType="Anything">
+                <tag name="log" tagType="Anything">
                     <description>
                         <localized_desc language="en"></localized_desc>
                         <localized_desc language="fr"></localized_desc>
                     </description>
-                    <substitute>level</substitute>
+                    <substitute>log</substitute>
                     <callbacks>
                         <callback>encode_level</callback>
-                    </callbacks>
-                </tag>
-                <tag name="name" tagType="Anything">
-                    <description>
-                        <localized_desc language="en"></localized_desc>
-                        <localized_desc language="fr"></localized_desc>
-                    </description>
-                    <substitute>name</substitute>
-                    <callbacks>
-                        <callback></callback>
                     </callbacks>
                 </tag>
             </tags>
             <examples>
                 <example>
-                     <text>{"timestamp": "2020-03-23T20:50:21.850115Z", "level": "WARNING", "name": "testing.webdriver", "message": "Finished Request"}</text>
+                     <text>{"log":"[2020-02-27T11:53:05,774][ERROR][logstash.inputs.jdbc     ] Java::ComMicrosoftSqlserverJdbc::SQLServerException: Incorrect syntax near the keyword 'exec'.: SELECT TOP (1) count(*) AS [COUNT] FROM (exec dw.api.TAPCenterPerformance;) AS [T1]\n","stream":"stdout","time":"2020-02-27T16:53:05.775162808Z"}</text>
                      <expectedTags>
-                          <expectedTag name="level">WARNING</expectedTag>
-                          <expectedTag name="name">primer.get_code</expectedTag>
-                          <expectedTag name="message">Read code for list</expectedTag>
+                          <expectedTag name="level">ERROR</expectedTag>
                      </expectedTags>
                 </example>
             </examples>
