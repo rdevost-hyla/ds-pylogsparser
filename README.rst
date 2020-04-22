@@ -1,6 +1,7 @@
-ds-pylogsparser
 ===============
-Parse log files.
+Log Line Parser
+===============
+Parse log lines (strings).
 
 This migrates pylogsparser-0.8 to Python 3 and extends to handle json logs.
 See the original README in README-ORIGINAL.rst.
@@ -11,8 +12,24 @@ Log entries (lines) can be (1) simple strings with keywords and possibly delimit
 its components, (2) CSV records, or (2) json records with key/value items. The record formats
 are defined in XML files in the normalizers folder.
 
-XML Elements
-------------
+Log lines are parsed using definition XML files in the `normalizers` folder.
+
+To use, initialize the `normalizer`, then pass it a dictionary with the log line loaded as the
+value for the key "raw".  Values extracted from the log line are added to the dictionary.
+
+Example::
+
+    from ds-pylogsparser.lognormalizer import LogNormalizer
+
+    ln = LogNormalizer(<normalizer folder>)
+    for line in lines:
+        parsed_line = {'raw': line}
+        ln.lognormalize(parsed_line)
+        if parsed_line['level'] == 'ERROR'
+            print(f'Line {parsed_line["raw"]} had an ERROR')
+
+XML Elements of Normalizer Files
+================================
 <pattern name="some_pattern">...</pattern>::
 
     Fields to extract from the log file are defined as in <tag> elements. If a record is a CSV
@@ -54,4 +71,5 @@ XML Elements
 
 NOTES
 =====
-Environment variable NORMALIZERS_PATH must be set with absolute path to normalizers.
+For unit testing, environment variable NORMALIZERS_PATH must be set with absolute path to
+the normalizer definition files.
